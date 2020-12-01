@@ -1,0 +1,5 @@
+[*.{c,cpp,h,ino,js,html,py,ipynb}]
+charset = utf-8
+indent_style = tab
+indent_size = 4
+trim_trailing_whitespace = true
