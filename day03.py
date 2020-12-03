@@ -18,10 +18,10 @@ for slope in slopes:
 	dx, dy = slope
 	x = y = n = 0  # start at top-left, n = count the trees
 	while y < h:
-		n += tree(x, y)   # is there a tree here?
-		x = (x + dx) % w  # move horizontally
-		y += dy           # move vertically
-	p *= n                # multiply the numbers of trees
-	print(dx, dy, n)      # show slope and number of trees
+		n += tree(x % w, y)  # is there a tree here?
+		x += dx              # move horizontally
+		y += dy              # move vertically
+	p *= n            # multiply the numbers of trees
+	print(dx, dy, n)  # show slope and number of trees
 
 print(p)  # product of the tree numbers on all the slopes
