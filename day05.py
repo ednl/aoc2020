@@ -1,10 +1,9 @@
-inp = list(open('input05.txt'))
+file = list(open('input05.txt'))
 
 hi = 0
 seats = []
-
-for s in inp:
-	id = int(''.join(['1' if c == 'B' or c == 'R' else '0' for c in s.strip()]), 2)
+for line in file:
+	id = int(''.join(['1' if c == 'B' or c == 'R' else '0' for c in line.strip()]), 2)
 	hi = max(hi, id)
 	seats.append(id)
 
