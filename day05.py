@@ -1,8 +1,8 @@
 hi = 0
 seats = []
 with open('input05.txt') as f:
-	for line in (line.rstrip('\n') for line in f):
-		id = int(''.join(['1' if c == 'B' or c == 'R' else '0' for c in line]), 2)
+	for str in (line.rstrip('\n') for line in f):
+		id = int(''.join(['1' if c == 'B' or c == 'R' else '0' for c in str]), 2)
 		hi = max(hi, id)
 		seats.append(id)
 
