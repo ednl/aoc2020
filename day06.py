@@ -3,7 +3,7 @@ a1 = a2 = set()
 first = True
 
 with open('input06.txt') as f:
-	for str in (line.rstrip('\n') for line in f):
+	for str in (line.strip() for line in f):
 		if str == '':
 			n1 += len(a1)
 			n2 += len(a2)
