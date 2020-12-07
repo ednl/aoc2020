@@ -17,27 +17,26 @@ with open('input07.txt') as f:
 def check(outerbag):
 	if outerbag in hasmybag:
 		return True
-	if outerbag in tree:
-		if mybag in tree[outerbag]:
-			hasmybag.add(outerbag)
+	if mybag in tree[outerbag]:
+		hasmybag.add(outerbag)
+		return True
+	for innerbag in tree[outerbag].keys():
+		if check(innerbag):
+			hasmybag.add(innerbag)
 			return True
-		for innerbag in tree[outerbag].keys():
-			if check(innerbag):
-				hasmybag.add(innerbag)
-				return True
 	return False
 
 for bag in tree.keys():
-	if check(bag):
-		hasmybag.add(bag)
+	if not bag in hasmybag:
+		if check(bag):
+			hasmybag.add(bag)
 print(len(hasmybag))
 
 # Part 2
 def whatsinthe(outerbag):
 	bags = 0
-	if outerbag in tree:
-		for innerbag, size in tree[outerbag].items():
-			bags += size * (1 + whatsinthe(innerbag))
+	for innerbag, size in tree[outerbag].items():
+		bags += size * (1 + whatsinthe(innerbag))
 	return bags
 
 print(whatsinthe(mybag))
