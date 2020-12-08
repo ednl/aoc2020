@@ -1,45 +1,42 @@
-graph = {}
+tree = {}
 mybag = 'shiny gold'
-holding = set()
+hasmybag = set()
 
 with open('input07.txt') as f:
 	for str in (line.rstrip('\n.') for line in f):
-		container, descr = str.split(' bags contain ')
-		contents = {}
-		bags = descr.split(', ')
-		for bag in bags:
-			words = bag.split()
-			colour = ' '.join(words[1:-1])
-			if colour != 'other':
-				count = int(words[0])
-				contents[colour] = count
-		graph[container] = contents
+		root, leaves = str.split(' bags contain ')
+		branch = {}
+		for leaf in leaves.split(', '):
+			words = leaf.split()
+			name = ' '.join(words[1:-1])
+			if name != 'other':
+				branch[name] = int(words[0])
+		tree[root] = branch
 
 # Part 1
-def check(bag):
-	if bag in holding:
+def check(outerbag):
+	if outerbag in hasmybag:
 		return True
-	if bag in graph:
-		if mybag in graph[bag]:
-			holding.add(bag)
+	if mybag in tree[outerbag]:
+		hasmybag.add(outerbag)
+		return True
+	for innerbag in tree[outerbag].keys():
+		if check(innerbag):
+			hasmybag.add(innerbag)
 			return True
-		for sub in graph[bag].keys():
-			if check(sub):
-				holding.add(sub)
-				return True
 	return False
 
-for bag in graph.keys():
-	if check(bag):
-		holding.add(bag)
-print(len(holding))
+for bag in tree.keys():
+	if not bag in hasmybag:
+		if check(bag):
+			hasmybag.add(bag)
+print(len(hasmybag))
 
 # Part 2
-def countin(bag):
-	n = 0
-	if bag in graph:
-		for sub, m in graph[bag].items():
-			n += m * (1 + countin(sub))
-	return n
+def whatsinthe(outerbag):
+	bags = 0
+	for innerbag, size in tree[outerbag].items():
+		bags += size * (1 + whatsinthe(innerbag))
+	return bags
 
-print(countin(mybag))
+print(whatsinthe(mybag))
