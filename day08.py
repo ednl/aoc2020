@@ -41,7 +41,7 @@ def flip(i):
 			vm[i]['op'] = 'jmp'
 
 # Retain all jmp and nop instructions that were executed
-debug = [i for i in vm if i['ord'] > 0 and (i['op'] == 'jmp' or i['op'] == 'nop')]
+debug = [i for i in vm if i['ord'] != 0 and (i['op'] == 'jmp' or i['op'] == 'nop')]
 
 # Sort in reverse execution order (probably good for speed)
 debug.sort(key=lambda i: i['ord'], reverse=True)
