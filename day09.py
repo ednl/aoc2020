@@ -25,17 +25,12 @@ print(mynum)
 # Part 2
 def weakness():
 	for i in range(len(a) - 1):
-		s = amin = amax = a[i]
+		s = a[i]
 		for j in range(i + 1, len(a)):
 			s += a[j]
 			if s > mynum:
 				break
-			if a[j] < amin:
-				amin = a[j]
-			if a[j] > amax:
-				amax = a[j]
 			if s == mynum:
-				# use return from function to simulate double break
-				return amin + amax
+				return min(a[i:j + 1]) + max(a[i:j + 1])
 
 print(weakness())
