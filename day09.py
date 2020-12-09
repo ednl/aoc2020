@@ -27,7 +27,7 @@ s1 = a[0]
 for slicelen in range(2, len(a)):
 	i = 0
 	j = slicelen
-	s1 = s2 = s1 + a[j - 1]
+	s2 = s1 = s1 + a[j - 1]
 	while s2 != mynum and j < len(a):
 		s2 = s2 - a[i] + a[j]
 		i += 1
