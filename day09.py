@@ -1,4 +1,5 @@
 from collections import deque
+from itertools import combinations
 
 with open('input09.txt') as f:
 	a = [int(line) for line in f]
@@ -7,21 +8,18 @@ qlen = 25
 mynum = 0
 
 # Part 1
-q = deque(a[:qlen])
+q = deque(a[:qlen], maxlen=qlen)
 for n in a[qlen:]:
 	s = 0
-	for i in range(qlen - 1):
-		for j in range(i + 1, qlen):
-			s = q[i] + q[j]
-			if s == n:
-				break
+	for duo in combinations(q, 2):
+		s = sum(duo)
 		if s == n:
 			break
 	if s != n:
 		mynum = n
 		break
-	q.popleft()
 	q.append(n)
+
 print(mynum)
 
 # Part 2
