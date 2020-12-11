@@ -30,8 +30,8 @@ def neighbours(area, row, col, thresh, part):
 
 def evolve(a1, a2, part):
 	changed = False
-	for r in range(0, h):
-		for c in range(0, w):
+	for r in range(h):
+		for c in range(w):
 			if a1[r][c] == 0:
 				if neighbours(a1, r, c, 1, part) == 0:
 					a2[r][c] = 1
