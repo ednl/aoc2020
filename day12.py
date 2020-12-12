@@ -6,15 +6,15 @@ heading = {'E': (1,0), 'N': (0,1), 'W': (-1,0), 'S': (0,-1)}
 def nav(wx, wy, part):
 	x = y = 0
 	for action, value in data:
-		if action == 'F':
-			x += value * wx
-			y += value * wy
-		elif action == 'L' or action == 'R':
+		if action == 'L' or action == 'R':
 			if action == 'R':
 				value = 360 - value
 			while value:
 				wx, wy = -wy, wx
 				value -= 90
+		elif action == 'F':
+			x += value * wx
+			y += value * wy
 		else:
 			dx, dy = [value * i for i in heading[action]]
 			if part == 1:
