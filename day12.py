@@ -1,29 +1,26 @@
 with open('input12.txt') as f:
 	data = [(line[:1], int(line[1:])) for line in f]
 
-heading = {'E': (1,0), 'N': (0,1), 'W': (-1,0), 'S': (0,-1)}
+heading = {'E': 1, 'N': 1j, 'W': -1, 'S': -1j}
 
-def nav(wx, wy, part):
-	x = y = 0
-	for action, value in data:
-		if action == 'L' or action == 'R':
-			if action == 'R':
-				value = 360 - value
-			while value:
-				wx, wy = -wy, wx
-				value -= 90
-		elif action == 'F':
-			x += value * wx
-			y += value * wy
+def nav(way, part):
+	pos = 0
+	for act, val in data:
+		if act == 'L' or act == 'R':
+			if act == 'R':
+				val = 360 - val
+			while val:
+				way *= 1j
+				val -= 90
+		elif act == 'F':
+			pos += val * way
 		else:
-			dx, dy = [value * i for i in heading[action]]
+			val *= heading[act]
 			if part == 1:
-				x += dx
-				y += dy
+				pos += val
 			else:
-				wx += dx
-				wy += dy
-	return abs(x) + abs(y)
+				way += val
+	return int(abs(pos.real) + abs(pos.imag))
 
-print(nav(*heading['E'], part=1))
-print(nav(10, 1, part=2))
+print(nav(heading['E'], part=1))
+print(nav(10+1j, part=2))
