@@ -52,6 +52,8 @@ for i, bus in enumerate(sched):
 	if bus:           # only buses in service are part of the problem
 		n = p // bus  # n = product of all buses minus the current bus
 		# Second Bézout coefficient is of interest (corresponding to n)
+		# Missing is a check to see if GCD=1 i.e. if bus and n are coprime!
+		# but all of them are (otherwise t would get bigger but still congruent, I think)
 		_, b2, _ = ext_gcd(bus, n)
 		# nextdeparture() are the a[i]'s, the remainders from the congruence set
 		# and b2 * n = e[i] = M[i] * N[i] from
