@@ -10,6 +10,7 @@ deps = sorted([(depart(mytime, bus), bus) for bus in filter(lambda x: x > 0, bus
 print(deps[0][0] * deps[0][1])
 
 # Part 2
+# https://en.wikipedia.org/wiki/Chinese_remainder_theorem#Search_by_sieving
 t = 0
 dt = 1
 for time, bus in enumerate(buses):
