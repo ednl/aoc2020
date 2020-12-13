@@ -41,27 +41,22 @@ def ext_gcd(a, b):
 	t = 0 if b == 0 else (r0 - s0 * a) // b
 	return s0, t, r0
 
-# First add indices (=time + i from the problem) to bus IDs
-table = list(zip(range(len(sched)), sched))
-
-# Then keep only buses in service
-table = list(filter(lambda x: x[1] > 0, table))
-
-# Transform each index to departure time
-table = list(map(lambda x: (nextdeparture(x[0], x[1]), x[1]), table))
-
-# Product of all bus IDs
-p = prod([v for _,v in table])
+# Product of all bus IDs in service
+p = prod([bus if bus else 1 for bus in sched])
 
 # Now do the Chinese whispers
 # https://en.wikipedia.org/wiki/Chinese_remainder_theorem
 # https://nl.wikipedia.org/wiki/Chinese_reststelling
 t = 0  # time that satisfies the problem set, but not necessarily the earliest
-for wait, bus in table:
-	n = p // bus  # n = product of all buses minus the current bus
-	b1, b2, g = ext_gcd(bus, n)
-	# Pick the second Bézout coefficient (corresponding to n)
-	t += wait * b2 * n
+for i, bus in enumerate(sched):
+	if bus:           # only buses in service are part of the problem
+		n = p // bus  # n = product of all buses minus the current bus
+		# Second Bézout coefficient is of interest (corresponding to n)
+		_, b2, _ = ext_gcd(bus, n)
+		# nextdeparture() are the a[i]'s, the remainders from the congruence set
+		# and b2 * n = e[i] = M[i] * N[i] from
+		# https://en.wikipedia.org/wiki/Chinese_remainder_theorem#Existence_(direct_construction)
+		t += nextdeparture(i, bus) * b2 * n
 
 # Required answer is the smallest t which is congruent to t % p, i.e.:
 print(t % p)
