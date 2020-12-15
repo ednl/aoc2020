@@ -1,3 +1,5 @@
+import array
+
 def play(game, turns):
     if turns < 1:
         return None
@@ -6,16 +8,14 @@ def play(game, turns):
     if turns <= len(game):
         return game[turns - 1]
     lastnum = game[-1]
-    seen = [0] * turns  # dumb but fast :(
-    i = 1
-    while i < len(game):
+    # For 'I', seen.itemsize should be >= 4, otherwise use 'L'
+    seen = array.array('I', [0]) * turns
+    for i in range(1, len(game)):
         seen[game[i - 1]] = i
-        i += 1
-    while i < turns:
+    for i in range(len(game), turns):
         j = seen[lastnum]
         seen[lastnum] = i
         lastnum = 0 if j == 0 else i - j
-        i += 1
     return lastnum
 
 # Van Eck sequence
