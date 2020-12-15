@@ -1,17 +1,17 @@
+# Van Eck Missing Number
+# https://www.rosettacode.org/wiki/Van_Eck_sequence
 def play(game, turns):
-    seen = [0] * turns
-    for i in range(1, len(game)):
+    seen = [0] * turns  # dumb but fast :(
+    lastnum = game[-1]
+    i = 0
+    while i < len(game):
         seen[game[i - 1]] = i
-
-    i = len(game)
-    lastnum = game[i - 1]
-
+        i += 1
     while i < turns:
         j = seen[lastnum]
         seen[lastnum] = i
         lastnum = 0 if j == 0 else i - j
         i += 1
-
     return lastnum
 
 # Part 1
