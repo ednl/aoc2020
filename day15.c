@@ -14,18 +14,13 @@ int main(void)
 	for (i = 0; i < TURNS; ++i) {
 		seen[i] = 0;
 	}
-
-	i = 1;
-	while (i < gamesize) {
+	for (i = 1; i < gamesize; ++i) {
 		seen[game[i - 1]] = i;
-		++i;
 	}
-
-	while (i < TURNS) {
+	for (; i < TURNS; ++i) {
 		j = seen[lastnum];
 		seen[lastnum] = i;
 		lastnum = j ? i - j : 0;
-		++i;
 	}
 
 	printf("%u\n", lastnum);
