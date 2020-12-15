@@ -1,23 +1,23 @@
-def lastnum(game, turns):
-    prev = {}
-    for i in range(len(game) - 1):
-        prev[game[i]] = i
+def play(game, turns):
+    seen = [0] * turns
+    for i in range(1, len(game)):
+        seen[game[i - 1]] = i
 
-    i = len(game) - 1
-    latest = game[i]
+    i = len(game)
+    lastnum = game[i - 1]
 
-    while i < turns - 1:
-        next = i - prev.get(latest, i)
-        prev[latest] = i
-        latest = next
+    while i < turns:
+        j = seen[lastnum]
+        seen[lastnum] = i
+        lastnum = 0 if j == 0 else i - j
         i += 1
 
-    return latest
+    return lastnum
 
 # Part 1
 game = [0,3,6]
-print(lastnum(game, 2020))
+print(play(game, 2020))
 
 # Part 2
 game = [13,16,0,12,15,1]
-print(lastnum(game, 30000000))
+print(play(game, 30000000))
