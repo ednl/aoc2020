@@ -2,11 +2,9 @@
 #include <stdlib.h>
 
 const size_t TURNS = 30000000;
-// const size_t TURNS = 2020;
 unsigned int seen[TURNS];
 
 const unsigned int game[] = {13, 16, 0, 12, 15, 1};
-// const unsigned int game[] = {0, 3, 6};
 const size_t gamesize = sizeof game / sizeof(unsigned int);
 
 int main(void)
