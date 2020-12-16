@@ -1,4 +1,6 @@
 import re
+from math import prod
+
 rule = re.compile(r'^([a-z ]+): (\d+)-(\d+) or (\d+)-(\d+)$')
 
 rules = {}
@@ -61,16 +63,12 @@ for ticket in tickets:
                     impossibru[field].add(name)
 
 fieldnames = set(rules.keys())
-possibru = [fieldnames.difference(i) for i in impossibru]
+possibru = [fieldnames - i for i in impossibru]
 count = sorted(list((len(v), k) for k, v in enumerate(possibru)))
 for i, f1 in enumerate(count[:-1]):
     s1 = possibru[f1[1]]
     for _, f2 in count[i + 1:]:
-        possibru[f2] = possibru[f2] - (s1 & possibru[f2])
-fieldmapping = list(x[0] for x in map(list, possibru))
-
-p = 1
-for i, name in enumerate(fieldmapping):
-    if name[:9] == 'departure':
-        p *= myticket[i]
-print(p)
+        possibru[f2] -= s1 & possibru[f2]
+fieldmapping = [f for s in possibru for f in s]
+mydepartures = [n for n, f in zip(myticket, fieldmapping) if f[:9] == 'departure']
+print(prod(mydepartures))
