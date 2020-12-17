@@ -5,8 +5,7 @@ with open('input17.txt') as f:
     data = np.array([list(map(lambda x: 1 if x == '#' else 0, line.strip())) for line in f], dtype=np.uint8)
 
 def cycle(init, dim, gen=6):
-    s = init.shape
-    grid = init.reshape([1] * (dim - len(s)) + list(s))
+    grid = init.reshape([1] * (dim - len(init.shape)) + list(init.shape))
     kernel = np.ones([3] * dim, dtype=np.uint8)
     for i in range(gen):
         nb = convolve(grid, kernel)
