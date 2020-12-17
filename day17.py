@@ -11,8 +11,7 @@ def cycle(init, dim, gen=6):
     for i in range(gen):
         nb = convolve(grid, kernel)
         grid = np.pad(grid, ((1, 1),), mode='constant')
-        next = ((nb == 3) | ((grid == 1) & (nb == 4))).astype(np.uint8)
-        grid = next
+        grid = ((nb == 3) | ((grid == 1) & (nb == 4))).astype(np.uint8)
     return np.sum(grid)
 
 # Part 1
