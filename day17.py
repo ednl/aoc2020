@@ -4,11 +4,8 @@ from scipy.signal import convolve
 with open('input17.txt') as f:
     data = np.array([list(map(lambda x: 1 if x == '#' else 0, line.strip())) for line in f], dtype=np.uint8)
 
-def evolve(init, dim, gen):
+def cycle(init, dim, gen=6):
     s = init.shape
-    if dim < len(s):
-        return None
-    
     grid = init.reshape([1] * (dim - len(s)) + list(s))
     kernel = np.ones([3] * dim, dtype=np.uint8)
     kernel[(1,) * dim] = 0
@@ -20,7 +17,7 @@ def evolve(init, dim, gen):
     return np.sum(grid)
 
 # Part 1
-print(evolve(data, 3, 6))
+print(cycle(data, 3))
 
 # Part 2
-print(evolve(data, 4, 6))
+print(cycle(data, 4))
