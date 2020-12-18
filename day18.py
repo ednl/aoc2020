@@ -1,9 +1,10 @@
 with open('input18.txt') as f:
     data = [line.strip() for line in f]
 
+# Operators with function for 2 operands, and precedence level
 op = {
-    '+': {'f': lambda x, y: x + y, 'p': 1, 'a': 0},
-    '*': {'f': lambda x, y: x * y, 'p': 1, 'a': 0}
+    '+': {'f': lambda x, y: x + y, 'p': 1},
+    '*': {'f': lambda x, y: x * y, 'p': 1}
 }
 
 # Shunting-yard algorithm, all left-associative
