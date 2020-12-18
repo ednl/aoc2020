@@ -2,16 +2,15 @@ import numpy as np
 from scipy.signal import convolve
 
 with open('input17.txt') as f:
-    data = np.array([list(map(lambda x: 1 if x == '#' else 0, line.strip())) for line in f], dtype=np.uint8)
+    data = (np.array([list(i.strip()) for i in f]) == '#').astype(np.uint8)
 
 def cycle(init, dim, gen=6):
-    grid = init.reshape([1] * (dim - len(init.shape)) + list(init.shape))
+    state = init.reshape([1] * (dim - init.ndim) + list(init.shape))
     kernel = np.ones([3] * dim, dtype=np.uint8)
-    for i in range(gen):
-        nb = convolve(grid, kernel)
-        grid = np.pad(grid, ((1, 1),), mode='constant')
-        grid = ((nb == 3) | ((grid == 1) & (nb == 4))).astype(np.uint8)
-    return np.sum(grid)
+    for _ in range(gen):
+        nb = convolve(state, kernel)
+        state = np.pad(state, ((1,1),), mode='constant') & (nb == 4) | (nb == 3)
+    return np.sum(state)
 
 # Part 1
 print(cycle(data, 3))
