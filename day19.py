@@ -1,13 +1,13 @@
 import re
 
+rules = {}  # parsed rules from the input
+cache = {}  # inferred regex for each rule
+data = []   # parsed messages from the input
+
+# Parse input
+part = 1  # input has 2 parts separated by an empty line
 isstr = re.compile(r'^(\d+): "([ab])"$')
 isnums = re.compile(r'^(\d+): (\d+)( \d+)?( \| (\d+)( \d+)?)?$')
-
-rules = {}
-cache = {}
-data = []
-
-part = 1
 with open('input19.txt') as f:
     for line in f:
         line = line.strip()
@@ -24,6 +24,8 @@ with open('input19.txt') as f:
         elif part == 2:
             data.append(line)
 
+# Depth First Search through the rules
+# with caching of intermediate results
 def pattern(n):
     if n in cache:
         return cache[n]
