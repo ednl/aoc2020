@@ -54,7 +54,7 @@ def pattern(n):
 
 # Part 1
 rulezero = pattern(0)
-print(sum([1 if re.fullmatch(rulezero, message) else 0 for message in data]))
+print(sum([bool(re.fullmatch(rulezero, message)) for message in data]))
 
 # Part 2
 # My rule 0 = 8 11
