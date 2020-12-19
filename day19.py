@@ -1,60 +1,43 @@
 import re
+from functools import lru_cache as memoize
 
 isstr = re.compile(r'^(\d+): "([ab])"$')
 isnums = re.compile(r'^(\d+): (\d+)( \d+)?( \| (\d+)( \d+)?)?$')
 
 rules = {}
-cache = {}
 data = []
 
 part = 1
-with open('input19.txt') as f:
-    for line in f:
-        line = line.strip()
-        if len(line) == 0:
-            part += 1
-        elif part == 1:
-            m = isstr.match(line)
-            if m:
-                rules[int(m.group(1))] = m.group(2)
-                continue
-            m = isnums.match(line)
-            if m:
-                rules[int(m.group(1))] = [-1 if i is None else int(i) for i in m.group(2, 3, 5, 6)]
-        elif part == 2:
-            data.append(line)
+for line in open('day19.txt'):
+    line = line.strip()
+    if len(line) == 0:
+        part += 1
+    elif part == 1:
+        if m := isstr.match(line):
+            rules[int(m.group(1))] = m.group(2)
+        if m := isnums.match(line):
+            rules[int(m.group(1))] = [-1 if i is None else int(i) for i in m.group(2, 3, 5, 6)]
+    elif part == 2:
+        data.append(line)
 
+
+@memoize
 def pattern(n):
-    if n in cache:
-        return cache[n]
-
-    r = rules[n]
-    if type(r) == str:
-        cache[n] = r
-        return r
-
-    a = pattern(r[0])
-    cache[r[0]] = a
-    if r[1] >= 0:
-        b = pattern(r[1])
-        cache[r[1]] = b
-        a += b
-
-    if r[2] >= 0:
-        c = pattern(r[2])
-        cache[r[2]] = c
-        if r[3] >= 0:
-            d = pattern(r[3])
-            cache[r[3]] = d
-            c += d
-        a = '(?:' + a + '|' +  c + ')'
-
-    cache[n] = a
-    return a
+    if n == -1:
+        return ""
+    rule = rules[n]
+    if isinstance(rule, str):
+        return rule
+    option1 = pattern(rule[0]) + pattern(rule[1])
+    if rule[2] >= 0:
+        option2 = pattern(rule[2]) + pattern(rule[3])
+        return '(?:' + option1 + '|' + option2 + ')'
+    return option1
 
 # Part 1
-rulezero = pattern(0)
-print(sum([1 if re.fullmatch(rulezero, message) else 0 for message in data]))
+rulezero = re.compile(pattern(0))
+# print(sum([1 if re.fullmatch(rulezero, message) else 0 for message in data]))
+print(sum(bool(rulezero.fullmatch(message)) for message in data))
 
 # Part 2
 # My rule 0 = 8 11
@@ -64,7 +47,7 @@ print(sum([1 if re.fullmatch(rulezero, message) else 0 for message in data]))
 # Problem: the number of repeated group matches is not returned by Python's re.match
 # but looking at the rule set: every match for one rule must have the same length
 # so, "n>m" can be translated as len(42+)/len(42) > len(31+)/len(31)
-rulezero = '((' + cache[42] + ')+)((' + cache[31] + ')+)'
+rulezero = '((' + pattern(42) + ')+)((' + pattern(31) + ')+)'
 matches = 0
 for message in data:
     fm = re.fullmatch(rulezero, message)
