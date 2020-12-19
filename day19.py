@@ -24,7 +24,7 @@ with open('input19.txt') as f:
         elif part == 2:
             data.append(line)
 
-def form(n):
+def pattern(n):
     if n in cache:
         return cache[n]
 
@@ -33,18 +33,18 @@ def form(n):
         cache[n] = r
         return r
 
-    a = form(r[0])
+    a = pattern(r[0])
     cache[r[0]] = a
     if r[1] >= 0:
-        b = form(r[1])
+        b = pattern(r[1])
         cache[r[1]] = b
         a += b
 
     if r[2] >= 0:
-        c = form(r[2])
+        c = pattern(r[2])
         cache[r[2]] = c
         if r[3] >= 0:
-            d = form(r[3])
+            d = pattern(r[3])
             cache[r[3]] = d
             c += d
         a = '(?:' + a + '|' +  c + ')'
@@ -52,23 +52,22 @@ def form(n):
     return a
 
 # Part 1
-rulezero = form(0)
+rulezero = pattern(0)
 print(sum([1 if re.fullmatch(rulezero, message) else 0 for message in data]))
 
 # Part 2
-#      0: 8 11
-#      8: 42 | 42 42 | 42 42 42 | ...
-#     11: 42 31 | 42 42 31 31 | 42 42 42 31 31 31 | ...
-# So, rule 0 = 42{n} 31{m} where n>m and m>0
-# Looking at captured subgroups: all matches for 42 or 31 have length 8,
-# so "n>m" can be translated as len(42{n}) > len(31{m})
-a = cache[42]
-b = cache[31]
-rulezero = '((?:' + a + ')+)((?:' + b + ')+)'
-n = 0
+# My rule 0 = 8 11
+# New rule 8 = 42 | 42 42 | 42 42 42 | ...
+# New rule 11 = 42 31 | 42 42 31 31 | 42 42 42 31 31 31 | ...
+# So, my rule 0 = 42{n} 31{m}, where n>m and m>0
+# Problem: the number of repeated group matches is not returned by Python's re.match
+# but looking at the rule set: every match for one rule must have the same length
+# so, "n>m" can be translated as len(42+)/len(42) > len(31+)/len(31)
+rulezero = '((' + cache[42] + ')+)((' + cache[31] + ')+)'
+matches = 0
 for message in data:
     fm = re.fullmatch(rulezero, message)
     if fm:
-        if len(fm.group(1)) > len(fm.group(2)):
-            n += 1
-print(n)
+        if len(fm.group(1)) // len(fm.group(2)) > len(fm.group(3)) // len(fm.group(4)):
+            matches += 1
+print(matches)
