@@ -49,6 +49,7 @@ def pattern(n):
             c += d
         a = '(?:' + a + '|' +  c + ')'
 
+    cache[n] = a
     return a
 
 # Part 1
