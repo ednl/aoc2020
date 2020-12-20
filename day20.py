@@ -15,6 +15,8 @@ def fhor(e):
     return [rev(e[0]), e[3], rev(e[2]), e[1]]
 
 edges = {}
+place = {}
+
 with open('input20.txt') as f:
     tiledata = f.read().replace('#', '1').replace('.', '0').strip().split('\n\n')
     for td in tiledata:
@@ -28,21 +30,16 @@ with open('input20.txt') as f:
         for _ in range(3):
             edges[id].append(rotl(edges[id][-1]))
 
-img = []
-for _ in range(25):
-    img.append([0] * 25)
+def find_right(t1, p1):
+    e1 = edges[t1][p1]
+    for t2 in edges:
+        if t2 != t1:
+            for p2, e2 in enumerate(edges[t2]):
+                if e1[1] == e2[3]:
+                    return (t2, p2)
+    return (-1, -1)
 
-# Put the first tile in the middle
-img[12][12] = edges.keys()[0]
-
-# def matchlr(left, right):
-#     return edges[left][1] == edges[right][3]
-
-# def matchtb(top, bottom):
-#     return edges[top][2] == edges[bottom][0]
-
-def fit(t1, r, c):
-    if r < 24:
-        t2 = img[r + 1][c]
-        if not matchlr(t1, t2):
-            return False
+t1 = tile_ids[0]
+p1 = 0
+t2, p2 = find_right(t1, p1)
+print(t2, p2)
