@@ -1,13 +1,13 @@
 possible = {}
-ingredientcount = {}
+ingcount = {}
 with open('input21.txt') as f:
     for line in f:
-        ingredients, allergens = line.split(' (contains ')
-        ingredients = set(ingredients.split())
-        allergens = allergens[:-2].split(', ')
+        i, a = line.split(' (contains ')
+        ingredients = set(i.split())
+        allergens = a[:-2].split(', ')
 
         for i in ingredients:
-            ingredientcount[i] = ingredientcount.get(i, 0) + 1
+            ingcount[i] = ingcount.get(i, 0) + 1
 
         for a in allergens:
             if a in possible:
@@ -25,7 +25,7 @@ while len(possible):
 
 # Part 1
 bad = danger.values()
-print(sum([c for i, c in ingredientcount.items() if i not in bad]))
+print(sum([c for i, c in ingcount.items() if i not in bad]))
 
 # Part 2
 sortbyallergen = sorted([(a, i) for a, i in danger.items()])
