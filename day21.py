@@ -4,9 +4,12 @@ with open('input21.txt') as f:
     for line in f:
         ingredients, allergens = line.split(' (contains ')
         ingredients = set(ingredients.split())
+        allergens = allergens[:-2].split(', ')
+
         for i in ingredients:
             ingredientcount[i] = ingredientcount.get(i, 0) + 1
-        for a in allergens[:-2].split(', '):
+
+        for a in allergens:
             if a in possible:
                 possible[a] &= ingredients
             else:
