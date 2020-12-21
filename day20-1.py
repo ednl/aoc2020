@@ -22,11 +22,11 @@ with open('input20.txt') as f:
         s = td.strip().split('\n')
         id = int(s[0][5:-1])
         bits = [s[1], ''.join([r[-1] for r in s[1:]]), s[-1], ''.join([r[0] for r in s[1:]])]
-        edges[id] = [list(map(lambda x: int(x, 2), bits))]  # original tile
-        edges[id].append(fhor(edges[id][0]))                # flipped tile
+        edges[id] = [list(map(lambda x: int(x, 2), bits))]  # 0 = original tile
+        edges[id].append(fhor(edges[id][0]))                # 1 = flipped tile
         for _ in range(3):
-            edges[id].append(rotl(edges[id][-2]))           # rotated from original
-            edges[id].append(rotl(edges[id][-2]))           # rotated from flipped
+            edges[id].append(rotl(edges[id][-2]))           # 2,4,6 = rotated from original
+            edges[id].append(rotl(edges[id][-2]))           # 3,5,7 = rotated from flipped
 
 # For tile t1 oriented as p1, find its neighbour in direction d1,
 # return that tile number and orientation
@@ -40,14 +40,26 @@ def neighbour(t1, p1, d1):
                     return (t2, p2)
     return None
 
-def corners():
+def findcorners():
     for t in edges:
-        n = 0
+        n = p = 0
         for d in range(4):
+            p <<= 1
             if neighbour(t, 0, d):
+                p |= 1
                 n += 1
         if n == 2:
-            yield t
+            if p == 9:
+                yield t, 0  # original orientation
+            elif p == 12:
+                yield t, 2  # 1x rotl
+            elif p == 6:
+                yield t, 4  # 2x rotl
+            elif p == 3:
+                yield t, 6  # 3x rotl
 
 # Part 1
-print(prod(corners()))
+# Orientation is not used for part 1, and I'm going to redo the
+# whole thing for part 2, soooo, could have been shorter :shrug: 
+corners = list(findcorners())
+print(prod([t for t, _ in corners]))
