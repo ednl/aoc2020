@@ -61,5 +61,5 @@ def findcorners():
 # Part 1
 # Orientation is not used for part 1, and I'm going to redo the
 # whole thing for part 2, soooo, could have been shorter :shrug: 
-corners = list(findcorners())
+corners = list(findcorners())  # [(2693, 0), (1549, 0), (3539, 4), (3709, 6)]
 print(prod([t for t, _ in corners]))
