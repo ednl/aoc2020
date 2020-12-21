@@ -22,13 +22,14 @@ with open('input20.txt') as f:
         s = td.strip().split('\n')
         id = int(s[0][5:-1])
         bits = [s[1], ''.join([r[-1] for r in s[1:]]), s[-1], ''.join([r[0] for r in s[1:]])]
-        edges[id] = [list(map(lambda x: int(x, 2), bits))]
+        edges[id] = [list(map(lambda x: int(x, 2), bits))]  # original tile
+        edges[id].append(fhor(edges[id][0]))                # flipped tile
         for _ in range(3):
-            edges[id].append(rotl(edges[id][-1]))
-        edges[id].append(fhor(edges[id][0]))
-        for _ in range(3):
-            edges[id].append(rotl(edges[id][-1]))
-        
+            edges[id].append(rotl(edges[id][-2]))           # rotated from original
+            edges[id].append(rotl(edges[id][-2]))           # rotated from flipped
+
+# For tile t1 oriented as p1, find its neighbour in direction d1,
+# return that tile number and orientation
 def neighbour(t1, p1, d1):
     e1 = edges[t1][p1]
     d2 = (d1 + 2) % 4
@@ -39,20 +40,14 @@ def neighbour(t1, p1, d1):
                     return (t2, p2)
     return None
 
-def corner_ids():
-    tot = 0
+def corners():
     for t in edges:
         n = 0
         for d in range(4):
             if neighbour(t, 0, d):
                 n += 1
-                if n > 2:
-                    break
         if n == 2:
             yield t
-            tot += 1
-            if tot == 4:
-                return
 
 # Part 1
-print(prod(corner_ids()))
+print(prod(corners()))
