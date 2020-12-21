@@ -17,11 +17,18 @@ tiles = tiles[1:,:,:]  # delete stub
 # Flipped horizontally: -t,l,-b,r
 # Rotations: l,b,r,t | b,-r,t,-l | -r,-t,-l,-b
 
-print(tiles[0])
-tiles = np.rot90(tiles, axes=(1, 2))
-print(tiles[0])
-tiles = np.rot90(tiles, axes=(1, 2))
-print(tiles[0])
-
-place = np.zeros((1,1))
+# tiles = np.rot90(tiles, axes=(1, 2))
+# tiles = np.rot90(tiles, axes=(1, 2))
 # place = np.pad(place, ((1,1),), mode='constant')
+
+# place = np.zeros((1,1))
+# place[0,0] = ids[0]
+# img = 
+
+monster = (np.array([list(s) for s in [
+    '                  # ',
+    '#    ##    ##    ###',
+    ' #  #  #  #  #  #   '
+]]) == '#').astype(np.uint8)
+print(monster)
+print(monster.shape)
