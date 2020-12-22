@@ -14,10 +14,8 @@ def gameid(decks):
 def combat1(decks):
     while len(decks[0]) and len(decks[1]):
         draw = [d.pop(0) for d in decks]
-        if draw[0] > draw[1]:
-            decks[0].extend(draw)
-        else:
-            decks[1].extend(reversed(draw))
+        w = 0 if draw[0] > draw[1] else 1
+        decks[w].extend([draw[w], draw[1 - w]])
     return sum(gameid(decks))
 
 print(combat1(deepcopy(decks)))
@@ -26,8 +24,8 @@ print(combat1(deepcopy(decks)))
 def combat2(decks):
     state = set()
     while len(decks[0]) and len(decks[1]):
-        i0, i1 = gameid(decks)
-        id = 10000 * i0 + i1  # unique enough
+        i, j = gameid(decks)
+        id = 10000 * i + j  # unique enough
         if id in state:
             return 0  # player 1 wins
         else:
