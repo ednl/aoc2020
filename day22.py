@@ -1,0 +1,43 @@
+from copy import deepcopy
+from math import prod
+
+with open('input22.txt') as f:
+    decks = [list(map(int, d.strip().split('\n')[1:])) for d in f.read().split('\n\n')]
+
+def deckid(deck):
+    return sum(map(prod, zip(range(len(deck), 0, -1), deck)))
+
+def gameid(decks):
+    return [deckid(d) for d in decks]
+
+# Part 1
+def combat1(decks):
+    while len(decks[0]) and len(decks[1]):
+        draw = [d.pop(0) for d in decks]
+        if draw[0] > draw[1]:
+            decks[0].extend(draw)
+        else:
+            decks[1].extend(reversed(draw))
+    return sum(gameid(decks))
+
+print(combat1(deepcopy(decks)))
+
+# Part 2
+def combat2(decks):
+    state = set()
+    while len(decks[0]) and len(decks[1]):
+        i0, i1 = gameid(decks)
+        id = 10000 * i0 + i1  # unique enough
+        if id in state:
+            return 0  # player 1 wins
+        else:
+            state.add(id)
+        draw = [d.pop(0) for d in decks]
+        if len(decks[0]) >= draw[0] and len(decks[1]) >= draw[1]:
+            w = combat2([decks[0][:draw[0]], decks[1][:draw[1]]])
+        else:
+            w = 0 if draw[0] > draw[1] else 1
+        decks[w].extend([draw[w], draw[1 - w]])
+    return 0 if len(decks[0]) else 1
+
+print(deckid(decks[combat2(decks)]))
