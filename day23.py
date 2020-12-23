@@ -1,7 +1,6 @@
 import array
 
-def crabcups(labels, moves=100, cups=0, pick=3):
-    cups = max(cups, len(labels))
+def crabcups(labels, moves=100, cups=9, pick=3):
     a = array.array('I', range(1, cups + 2))
     b = array.array('I', map(int, labels))
 
@@ -43,4 +42,4 @@ data = '362981754'
 crabcups(data)
 
 # Part 2
-print(crabcups(data, moves=10000000, cups=1000000))
+print(crabcups(data, moves=10_000_000, cups=1_000_000))
