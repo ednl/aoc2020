@@ -1,7 +1,9 @@
+import array
+
 def crabcups(labels, moves=100, cups=0, pick=3):
     cups = max(cups, len(labels))
-    a = [i for i in range(1, cups + 2)]
-    b = [int(c) for c in labels]
+    a = array.array('I', range(1, cups + 2))
+    b = array.array('I', map(int, labels))
 
     a[0] = a[-1] = b[0]
     for i in range(len(b) - 1):
@@ -37,7 +39,8 @@ def crabcups(labels, moves=100, cups=0, pick=3):
     return a[1] * a[a[1]]
 
 # Part 1
-crabcups('362981754')
+data = '362981754'
+crabcups(data)
 
 # Part 2
-print(crabcups('362981754', moves=10000000, cups=1000000))
+print(crabcups(data, moves=10000000, cups=1000000))
