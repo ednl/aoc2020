@@ -1,74 +1,42 @@
-data = '362981754'
-pick = 3
+def crabcups(labels, moves=100, cups=0, pick=3):
+    cups = max(cups, len(labels))
+    a = [i for i in range(1, cups + 2)]
+    b = [int(c) for c in labels]
 
-def crabcup1(moves):
-    p = 0
+    a[0] = a[-1] = b[0]
+    for i in range(len(b) - 1):
+        a[b[i]] = b[i + 1]
+    a[b[len(b) - 1]] = b[0] if cups == len(b) else len(b) + 1
+
+    cur = 0
     for _ in range(moves):
-        cur = a[p]
-        nxt = (cur - 1) % mod
+        cur = a[cur]
+        nxt = cups if cur == 1 else cur - 1
 
-        i = (p + 1) % mod
-        found = True
-        while found:
-            found = False
-            j = i
-            for _ in range(pick):
-                if a[j] == nxt:
-                    found = True
-                    nxt = (nxt - 1) % mod
-                    break
-                else:
-                    j = (j + 1) % mod
-
-        q = (p + 1 + pick) % mod
-        while a[q] != nxt:
-            q = (q + 1) % mod
-
-        i = (p + 1) % mod
+        up = []
+        lastpick = cur
         for _ in range(pick):
-            j = i
-            tmp = a[j]
-            while j != q:
-                k = (j + 1) % mod
-                a[j] = a[k]
-                j = k
-            a[q] = tmp
-        p = (p + 1) % mod
+            up.append(lastpick := a[lastpick])
+        while nxt in up:
+            nxt = cups if nxt == 1 else nxt - 1
+
+        tmp = a[lastpick]
+        a[lastpick] = a[nxt]
+        a[nxt] = a[cur]
+        a[cur] = tmp
+
+    if cups < 10:
+        s = ''
+        i = a[1]
+        while i != 1:
+            s += str(i)
+            i = a[i]
+        print(s)
+ 
+    return a[1] * a[a[1]]
 
 # Part 1
-a = [int(ch) - 1 for ch in data]
-mod = len(a)
-crabcup1(100)
-s = ''
-p = (a.index(0) + 1) % mod
-for _ in range(mod - 1):
-    s += str(a[p] + 1)
-    p = (p + 1) % mod
-print(s)
+crabcups('362981754')
 
 # Part 2
-mod = 9
-mov = 100
-
-a = [i for i in range(1, mod + 1)]
-a[mod - 1] = 0
-
-b = [int(c) - 1 for c in data]
-for i in range(len(b) - 1):
-    a[b[i]] = b[i + 1]
-a[b[-1]] = b[0]
-
-cur = b[0]
-nxt = mod - 1 if cur == 0 else cur - 1
-
-nextinpick = True
-while nextinpick:
-    nextinpick = False
-    i = a[cur]
-    for _ in range(pick):
-        if i == nxt:
-            nextinpick = True
-            nxt = mod - 1 if cur == 0 else nxt - 1
-            break
-        else:
-            i = a[i]
+print(crabcups('362981754', moves=10000000, cups=1000000))
