@@ -1,45 +1,39 @@
 import array
 
-def crabcups(labels, moves=100, cups=9, pick=3):
-    a = array.array('I', range(1, cups + 2))
-    b = array.array('I', map(int, labels))
+def crabcups(labels, moves=100, cupcount=9):
+    next = array.array('I', range(1, cupcount + 2))
+    cups = array.array('I', map(int, labels))
 
-    a[0] = a[-1] = b[0]
-    for i in range(len(b) - 1):
-        a[b[i]] = b[i + 1]
-    a[b[len(b) - 1]] = b[0] if cups == len(b) else len(b) + 1
+    next[0] = next[-1] = cups[0]
+    for i in range(len(cups) - 1):
+        next[cups[i]] = cups[i + 1]
+    next[cups[len(cups) - 1]] = cups[0] if cupcount == len(cups) else max(cups) + 1
 
     cur = 0
     for _ in range(moves):
-        cur = a[cur]
-        nxt = cur - 1 if cur != 1 else cups
+        cur = next[cur]
+        ins = cur - 1 if cur != 1 else cupcount
+        p1 = next[cur]
+        p2 = next[p1]
+        p3 = next[p2]
+        while ins == p1 or ins == p2 or ins == p3:
+            ins -= 1
+        if ins < 1:
+            ins += cupcount
+        next[p3], next[ins], next[cur] = next[ins], next[cur], next[p3]
 
-        while True:
-            i = cur
-            found = False
-            for _ in range(pick):
-                if (i := a[i]) == nxt:
-                    found = True
-                    nxt = nxt - 1 if nxt != 1 else cups
-                    break
-            if not found:
-                break
-
-        a[i], a[nxt], a[cur] = a[nxt], a[cur], a[i]
-
-    if cups < 10:
-        s = ''
-        i = a[1]
+    if cupcount < 10:
+        i = next[1]
         while i != 1:
-            s += str(i)
-            i = a[i]
-        print(s)
- 
-    return a[1] * a[a[1]]
+            print(i, end='')
+            i = next[i]
+        print()
+    else:
+        print(next[1] * next[next[1]])
 
 # Part 1
 data = '362981754'
 crabcups(data)
 
 # Part 2
-print(crabcups(data, moves=10_000_000, cups=1_000_000))
+crabcups(data, moves=10_000_000, cupcount=1_000_000)
