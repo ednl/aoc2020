@@ -14,16 +14,13 @@ def crabcups(labels, moves=100, cups=0, pick=3):
         nxt = cups if cur == 1 else cur - 1
 
         up = []
-        lastpick = cur
+        i = cur
         for _ in range(pick):
-            up.append(lastpick := a[lastpick])
+            up.append(i := a[i])
         while nxt in up:
             nxt = cups if nxt == 1 else nxt - 1
 
-        tmp = a[lastpick]
-        a[lastpick] = a[nxt]
-        a[nxt] = a[cur]
-        a[cur] = tmp
+        a[i], a[nxt], a[cur] = a[nxt], a[cur], a[i]
 
     if cups < 10:
         s = ''
