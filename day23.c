@@ -1,8 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
 
-// #define CUPCOUNT        9u
-// #define MOVES         100u
 #define CUPCOUNT  1000000u
 #define MOVES    10000000u
 #define PICK            3u
