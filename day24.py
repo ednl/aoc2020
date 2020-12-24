@@ -87,8 +87,8 @@ def neighbours(grid, r, c):
 
 g2 = deepcopy(g1)
 for gen in range(generations):
-    for r in range(mid - maxdist - gen, mid + maxdist + gen):
-        for c in range(mid - maxdist - gen, mid + maxdist + gen):
+    for r in range(mid - maxdist - gen, mid + maxdist + gen + 1):
+        for c in range(mid - maxdist - gen, mid + maxdist + gen + 1):
             nb = neighbours(g1, r, c)
             if g1[r][c]:
                 g2[r][c] = 0 if nb == 0 or nb > 2 else 1
