@@ -46,7 +46,6 @@ for path in data:
 print(np.sum(grid))
 
 # Part 2
-
 # Kernels for even,odd rows
 kernel = np.array([[
     [1, 1, 0],
