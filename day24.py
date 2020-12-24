@@ -6,14 +6,16 @@ from copy import deepcopy
 # 2: x x x x x x x
 # 3:  x x x x x x x
 # 4: x x x x x x x
-step = {
-    'e' : ( 0,  1),
-    'se': ( 1,  0), # c += r % 2
-    'sw': ( 1, -1), # c += r % 2
-    'w' : ( 0, -1),
-    'nw': (-1, -1), # c += r % 2
-    'ne': (-1,  0)  # c += r % 2
-}
+def next(r, c, d):
+    if d == 'e':
+        return r, c + 1
+    if d == 'w':
+        return r, c - 1
+    dr = -1 if d[0] == 'n' else 1
+    dc = r % 2
+    if d[1] == 'w':
+        dc -= 1
+    return r + dr, c + dc
 
 txt = []
 with open('input24.txt') as f:
@@ -27,46 +29,43 @@ for s in txt:
     while j < len(s):
         ch = s[j]
         if ch == 'e' or ch == 'w':
-            data[i].append(ch)
             j += 1
-        elif ch == 'n' or ch == 's':
+        else:
             ch += s[j + 1]
-            data[i].append(ch)
             j += 2
+        data[i].append(ch)
     i += 1
 
-grid = []
-for i in range(101):
-    grid.append([0] * 101)
+g1 = []
+for i in range(301):
+    g1.append([0] * 301)
 
 for nav in data:
-    r = c = 20
+    r = c = 150
     for bearing in nav:
-        odd = r % 2
-        dr, dc = step[bearing]
-        c += dc + abs(dr) * odd
-        r += dr
-    grid[r][c] ^= 1
+        r, c = next(r, c, bearing)
+    g1[r][c] ^= 1
 
-print(sum(map(sum, grid)))
+# 411
+print(sum(map(sum, g1)))
 
-def neighbours(r, c):
+def neighbours(grid, r, c):
     odd = r % 2
     n = grid[r][c - 1] + grid[r][c + 1]
     n += grid[r - 1][c + odd - 1] + grid[r - 1][c + odd]
     n += grid[r + 1][c + odd - 1] + grid[r + 1][c + odd]
     return n
 
-g2 = deepcopy(grid)
+g2 = deepcopy(g1)
 for _ in range(100):
-    for r in range(1, 100):
-        for c in range(1, 100):
-            nb = neighbours(r, c)
-            if grid[r][c] == 1:
+    for r in range(1, 300):
+        for c in range(1, 300):
+            nb = neighbours(g1, r, c)
+            if g1[r][c]:
                 g2[r][c] = 0 if nb == 0 or nb > 2 else 1
             else:
                 g2[r][c] = 1 if nb == 2 else 0
-    grid, g2 = g2, grid
+    g1, g2 = g2, g1
 
 # 1899 too low
-print(sum(map(sum, grid)))
+print(sum(map(sum, g1)))
