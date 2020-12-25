@@ -2,17 +2,9 @@ import re
 import numpy as np
 from scipy.signal import convolve2d
 
-# Axial coordinates
-#    |0,-1 |1,-1 |
-#     \   / \   /
-#      \ /   \ /
-#  -1,0 | 0,0 | 1,0
-#      / \   / \
-#     /   \ /   \
-#    |-1,1 | 0,1 |
-
 # Part 1
 step = {
+    # Axial coordinates
     'e' : ( 1,  0),
     'w' : (-1,  0),
     'se': ( 0,  1),
@@ -32,9 +24,9 @@ flip -= np.amin(flip, axis=0)              # shift minimum coordinate to 0
 dim = np.amax(flip, axis=0) + 1            # coordinate ranges
 state = np.zeros(dim, dtype=np.uint8)      # grid of shape dim
 state[tuple(flip.T)] = 1                   # mark flipped tiles on the grid
-kernel = np.zeros((3, 3), dtype=np.uint8)  # centre cell and all neighbours on square grid
-i = (np.array(list(step.values()))).astype(np.uint8) + 1
-kernel[tuple(i.T)] = 1                     # pattern to select neighbouring cells on hex grid
+kernel = np.zeros((3, 3), dtype=np.uint8)  # centre cell and all 8 neighbours on square grid
+i = (np.array(list(step.values()))).astype(np.uint8) + 1  # coordinates of neighbours
+kernel[tuple(i.T)] = 1                     # pattern to select 6 neighbouring cells on hex grid
 for _ in range(100):                       # number of generations
     nb = convolve2d(state, kernel)         # count neighbours
     state = np.pad(state, ((1,1),), mode='constant') & (nb == 1) | (nb == 2)
