@@ -29,5 +29,5 @@ i = (np.array(list(step.values()))).astype(np.uint8) + 1  # coordinates of neigh
 kernel[tuple(i.T)] = 1                     # pattern to select 6 neighbouring cells on hex grid
 for _ in range(100):                       # number of generations
     nb = convolve2d(state, kernel)         # count neighbours
-    state = np.pad(state, ((1,1),), mode='constant') & (nb == 1) | (nb == 2)
+    state = np.pad(state, ((1,1),), mode='constant') & (nb == 1) | (nb == 2)  # evolve
 print(np.sum(state))
