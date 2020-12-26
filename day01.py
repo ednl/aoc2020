@@ -1,4 +1,4 @@
-with open('./input01.txt', 'r') as f:
+with open('input01.txt') as f:
     a = sorted(map(int, list(f)))
 
 print('Good')
