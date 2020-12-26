@@ -3,7 +3,7 @@
 # the problem can be rephased in terms of the Diffie-Hellman key exchange algorithm:
 # "Given the public base g = 7, the public modulus p = 20201227, and the two public keys A and B
 # (obtained as A = g^a mod p, B = g^b mod p), calculate the secret key s = A^b mod p = B^a mod p."
-# Ref. https://en.wikipedia.org/wiki/Diffie–Hellman_key_exchange
+# Ref. https://en.wikipedia.org/wiki/Diffie-Hellman_key_exchange
 
 # My version: pick the earliest matching key (p or q) in the loop,
 # then use the loop count (e) with the other key (q or p) to
@@ -29,4 +29,4 @@ def secret2(p, q):
 
 pubkeys = 15113849, 4206373
 print(secret1(*pubkeys))
-print(secret2(*pubkeys))
+# print(secret2(*pubkeys))
