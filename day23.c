@@ -36,8 +36,8 @@ int main(void)
             if (!ins)
                 ins = CUPS;
         }
-        j = next[p1];
-        next[p1] = next[ins];
+        j = next[p3];
+        next[p3] = next[ins];
         next[ins] = next[cur];
         next[cur] = j;
     }
