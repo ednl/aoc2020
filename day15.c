@@ -1,7 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>
 
-const size_t TURNS = 30000000;
+#define TURNS 30000000u
 unsigned int seen[TURNS] = {0};
 
 const unsigned int game[] = {13, 16, 0, 12, 15, 1};
