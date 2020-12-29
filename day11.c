@@ -146,12 +146,12 @@ int main(void)
 			t = p;
 			p = q;
 			q = t;
-			printf("%s", CLEAR);
-			printf("%s", HOME);
-			show(p);
-			for (count = 0; count < 20000000; ++count);
+			// printf("%s", CLEAR);
+			// printf("%s", HOME);
+			// show(p);
+			// for (count = 0; count < 20000000; ++count);
 		}
-		// printf("%d\n", occupied(p));
+		printf("%d\n", occupied(p));
 	}
 
 	return 0;
