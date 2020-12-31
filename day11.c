@@ -9,19 +9,29 @@
 #define CLEAR   "\e[2J"
 #define HIDECUR "\e[?25l"
 
-// Test
-// #define H 10
-// #define W 10
+#define INPUT_FLOOR '.'
+#define INPUT_EMPTY 'L'
+#define INPUT_OCCUP '#'
+#define STATE_FLOOR  -1
+#define STATE_EMPTY   0
+#define STATE_OCCUP   1
+
+// Test input
+// Correct answers: 37, 26
+// #define H (10 + 2)
+// #define W (10 + 2)
 // const char *inp = "input11a.txt";
 
+// My puzzle input
+// Correct answers: 2303, 2057
 // Determine manually from input file
-#define H 91
-#define W 98
-#define LEN (H * W)
+#define H (91 + 2)
+#define W (98 + 2)
 const char *inp = "input11.txt";
 
 // Original data and two copies for evolving
 // signed because state = -1 | 0 | 1
+#define LEN (H * W)
 int data[LEN], area1[LEN], area2[LEN];
 
 // Read and parse the input file
@@ -32,18 +42,30 @@ void read()
 	FILE *fp;
 	char *s = NULL;
 	size_t t = 0;
-	int i, j, k;
+	int i, k;
+
+	// Surround with empty seats
+	k = W * (H - 1);
+	for (i = 0; i < W; ++i) {
+		data[i] = data[k + i] = STATE_EMPTY;
+	}
+	k = 0;
+	for (i = 1; i < H; ++i) {
+		k += W;
+		data[k] = data[k - 1] = STATE_EMPTY;
+	}
 
 	if ((fp = fopen(inp, "r")) != NULL) {
-		i = 0;  // position in data
+		k = W + 1;  // first non-boundary index in data
 		while (getline(&s, &t, fp) > 0) {
-			j = 0;  // position in line
-			while (s[j] != '\0' && s[j] != '\n') {
-				if (i < LEN) {  // shouldn't be necessary if H and W fit the input
-					data[i++] = s[j] == 'L' ? 0 : -1;
+			i = 0;  // input column
+			while (s[i] != '\n' && s[i] != '\0') {
+				if (k < LEN) {  // shouldn't be necessary if H and W fit the input
+					data[k++] = s[i] == INPUT_EMPTY ? STATE_EMPTY : STATE_FLOOR;
 				}
-				j++;
+				++i;
 			}
+			k += 2;  // skip 2x boundary
 		}
 		free(s);
 		fclose(fp);
@@ -58,31 +80,33 @@ void init()
 	}
 }
 
-int neighbours(int *area, int row, int col, int thresh, int part)
+int neighbours(int *area, int index, int thresh, int part)
 {
-	int i, j, k, r, c, n = 0;
+	int i, j, k, dk, nb = 0;
 	for (i = -1; i <= 1; ++i) {      // row offset (direction)
+		dk = i * W - 1;              // first change in index
 		for (j = -1; j <= 1; ++j) {  // col offset (direction)
 			if (i || j) {            // not the centre
-				r = row + i;         // first row value in this direction
-				c = col + j;         // first col value in this direction
-				while (r >= 0 && r < H && c >= 0 && c < W) {
-					k = r * W + c;   // 1-D array index
+				k = index + dk;      // first new index in this direction
+				while (1) {          // area is surrounded by empty seats, so loop will break
+					if (k < 0 || k >= LEN) {
+						printf("Out of range: k\n");
+						exit(1);
+					}
 					// Part 1 = only direct neighbours, part 2 = 8 lines of sight
-					if (area[k] != -1 || part == 1) {
+					if (area[k] != STATE_FLOOR || part == 1) {
 						// Check & stop looking in this direction when reaching a seat
-						if (area[k] == 1) {     // occupied?
-							n++;                // hididelihi neighborino
-							if (n == thresh) {
-								return 1;  // reached threshold, no point in counting more
+						if (area[k] == STATE_OCCUP) {
+							if (++nb == thresh) {  // reached threshold?
+								return 1;         // no point in counting more
 							}
 						}
 						break;
 					}
-					r += i;
-					c += j;
+					k += dk;
 				}
 			}
+			++dk;
 		}
 	}
 	return 0;  // did not reach threshold
@@ -90,26 +114,27 @@ int neighbours(int *area, int row, int col, int thresh, int part)
 
 int evolve(int *a1, int *a2, int part)
 {
-	int r, c, k, changed = 0, thresh = 3 + part;
-	for (r = 0; r < H; ++r) {
-		for (c = 0; c < W; ++c) {
-			k = r * W + c;
-			if (a1[k] == 0) {  // empty seat?
-				if (neighbours(a1, r, c, 1, part)) {  // any neighbour?
-					a2[k] = 0;
+	int r, c, k = W, thresh = part + 3, changed = 0;
+	for (r = 1; r < H - 1; ++r) {
+		for (c = 1; c < W - 1; ++c) {
+			++k;
+			if (a1[k] == STATE_EMPTY) {
+				if (neighbours(a1, k, 1, part)) {  // any neighbours?
+					a2[k] = STATE_EMPTY;
 				} else {
-					a2[k] = 1;  // now it's occupied
+					a2[k] = STATE_OCCUP;
 					changed = 1;
 				}
-			} else if (a1[k] == 1) {  // occupied seat?
-				if (neighbours(a1, r, c, thresh, part)) {  // at least 4 or 5 neighbours?
-					a2[k] = 0;  // now it's empty
+			} else if (a1[k] == STATE_OCCUP) {
+				if (neighbours(a1, k, thresh, part)) {  // at least 4 or 5 neighbours?
+					a2[k] = STATE_EMPTY;
 					changed = 1;
 				} else {
-					a2[k] = 1;
+					a2[k] = STATE_OCCUP;
 				}
 			}
 		}
+		k += 2;
 	}
 	return changed;
 }
@@ -118,6 +143,7 @@ int evolve(int *a1, int *a2, int part)
 void show(int *area)
 {
 	int i, j, k;
+	unsigned char c;
 	volatile unsigned long delay;
 
 	printf("%s", CLEAR);
@@ -125,19 +151,26 @@ void show(int *area)
 	for (i = 0; i < H; ++i) {
 		for (j = 0; j < W; ++j) {
 			k = i * W + j;
-			printf(area[k] == 1 ? "##" : "  ");
+			switch (area[k]) {
+				case STATE_FLOOR: c = INPUT_FLOOR; break;
+				case STATE_EMPTY: c = INPUT_EMPTY; break;
+				case STATE_OCCUP: c = INPUT_OCCUP; break;
+				default: c = '?'; break;
+			}
+			printf("%c", c);
 		}
 		printf("\n");
 	}
+	printf("\n");
 	for (delay = 0; delay < 20000000; ++delay);
 }
 
-// Total number of occupied seats
+// Count number of occupied seats
 int occupied(int *area)
 {
 	int n = 0;
 	for (int i = 0; i < LEN; ++i) {
-		if (area[i] == 1) {
+		if (area[i] == STATE_OCCUP) {
 			n++;
 		}
 	}
@@ -159,7 +192,6 @@ int main(void)
 			q = t;
 			// show(p);
 		}
-		// Correct answers for my input: 2303, 2057
 		printf("%d\n", occupied(p));
 	}
 
