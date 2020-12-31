@@ -89,10 +89,6 @@ int neighbours(int *area, int index, int thresh, int part)
 			if (i || j) {            // not the centre
 				k = index + dk;      // first new index in this direction
 				while (1) {          // area is surrounded by empty seats, so loop will break
-					if (k < 0 || k >= LEN) {
-						printf("Out of range: k\n");
-						exit(1);
-					}
 					// Part 1 = only direct neighbours, part 2 = 8 lines of sight
 					if (area[k] != STATE_FLOOR || part == 1) {
 						// Check & stop looking in this direction when reaching a seat
