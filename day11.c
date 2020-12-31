@@ -1,3 +1,6 @@
+// Advent of Code 2020, day 11: "Seating System"
+// https://adventofcode.com/2020/day/11
+
 #include <stdio.h>   // fopen, fclose, getline
 #include <stdlib.h>  // free
 
