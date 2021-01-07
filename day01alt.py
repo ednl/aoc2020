@@ -5,30 +5,29 @@ count = len(data)
 target = 2020
 
 def findsum2():
-	for i, a in enumerate(data[:count - 1]):
-		if a > target:
-			break
-		for b in data[i + 1:]:
-			s = a + b
-			if s > target:
-				break
-			if s == target:
-				return a * b
+	i = 0
+	j = count - 1
+	while i < j:
+		s = data[i] + data[j]
+		if s < target:
+			i += 1
+		elif s > target:
+			j -= 1
+		else:
+			return data[i] * data[j]
 
 def findsum3():
-	for i, a in enumerate(data[:count - 2]):
-		if a > target:
-			break
-		for j, b in enumerate(data[i + 1:count - 1]):
-			s1 = a + b
-			if s1 > target:
-				break
-			for c in data[j + 1:]:
-				s2 = s1 + c
-				if s2 > target:
-					break
-				if s2 == target:
-					return a * b * c
+	for i in range(count - 2):
+		j = i + 1
+		k = count - 1
+		while j < k:
+			s = data[i] + data[j] + data[k]
+			if s < target:
+				j += 1
+			elif s > target:
+				k -= 1
+			else:
+				return data[i] * data[j] * data[k]
 
 print(findsum2())
 print(findsum3())
