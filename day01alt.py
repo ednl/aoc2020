@@ -15,8 +15,6 @@ def findsum2():
 			if s == target:
 				return a * b
 
-print(findsum2())
-
 def findsum3():
 	for i, a in enumerate(data[:count - 2]):
 		if a > target:
@@ -32,4 +30,5 @@ def findsum3():
 				if s2 == target:
 					return a * b * c
 
+print(findsum2())
 print(findsum3())
