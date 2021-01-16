@@ -4,7 +4,7 @@
 unsigned int seen[TURNS] = {0};
 
 const unsigned int game[] = {13, 16, 0, 12, 15, 1};
-const size_t gamesize = sizeof game / sizeof(unsigned int);
+const size_t gamesize = sizeof game / sizeof *game;
 
 int main(void)
 {
