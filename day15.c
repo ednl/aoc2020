@@ -1,10 +1,10 @@
 #include <stdio.h>
 
 #define TURNS 30000000u
-unsigned int seen[TURNS] = {0};
+static unsigned int seen[TURNS] = {0};
 
-const unsigned int game[] = {13, 16, 0, 12, 15, 1};
-const size_t gamesize = sizeof game / sizeof *game;
+static const unsigned int game[] = {13, 16, 0, 12, 15, 1};
+static const size_t gamesize = sizeof game / sizeof *game;
 
 int main(void)
 {
