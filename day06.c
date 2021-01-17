@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>  // free
 
 #define ALF 26
 
 static const char *inp = "input06.txt";
-static unsigned int question[ALF] = {0}, part1 = 0, part2 = 0;
+static unsigned int question[ALF], part1, part2;  // static = init to zero
 
 static void count_answers(unsigned int groupsize)
 {
@@ -30,19 +30,19 @@ int main(void)
 		while (getline(&s, &t, fp) > 0) {
 			ch = s;
 			while (*ch != '\n' && *ch != '\r' && *ch != '\0') {
-                question[*ch++ - 'a'] += 1;  // record answer
+                question[*ch++ - 'a']++;  // record single answer
 			}
-            if (ch == s) {                   // empty line = new group
+            if (ch == s) {                // empty line = new group
                 count_answers(groupsize);
                 groupsize = 0;
-            } else {                         // count group members
+            } else {                      // count group members
                 ++groupsize;
             }
 		}
 		free(s);
 		fclose(fp);
 	}
-    count_answers(groupsize);  // file does not end with empty line
+    count_answers(groupsize);  // input does not end in empty line
     printf("%u %u\n", part1, part2);
     return 0;
 }
