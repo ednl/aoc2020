@@ -1,11 +1,16 @@
 from copy import deepcopy
-from math import prod
+# from math import prod
 
 with open('input22.txt') as f:
     decks = [list(map(int, d.strip().split('\n')[1:])) for d in f.read().split('\n\n')]
 
 def deckid(deck):
-    return sum(map(prod, zip(range(len(deck), 0, -1), deck)))
+    # return sum(map(prod, zip(range(len(deck), 0, -1), deck)))
+    id = weight = 0
+    for card in deck[::-1]:
+        weight += 1
+        id += weight * card
+    return id
 
 def gameid(decks):
     return [deckid(d) for d in decks]
