@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.signal import convolve
+from time import perf_counter as timer
 
 with open('input17.txt') as f:
     data = (np.array([list(i.strip()) for i in f]) == '#').astype(np.uint8)
@@ -12,8 +13,8 @@ def cycle(init, dim, gen=6):
         state = np.pad(state, ((1,1),), mode='constant') & (nb == 4) | (nb == 3)
     return np.sum(state)
 
-# Part 1
-print(cycle(data, 3))
-
-# Part 2
-print(cycle(data, 4))
+for dim in range(3, 7):
+    t0 = timer()
+    res = cycle(data, dim)
+    t1 = timer()
+    print('%2d %5d %.3f' % (dim, res, t1 - t0))
