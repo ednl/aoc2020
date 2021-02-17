@@ -8,7 +8,7 @@
 #include <time.h>
 
 #define DSIZE 51
-#define HSIZE 8000
+#define HSIZE 10000
 
 typedef struct {
     int m,n;
