@@ -30,7 +30,7 @@ def combat2(decks):
     state = set()
     while len(decks[0]) and len(decks[1]):
         i, j = gameid(decks)
-        id = 10000 * i + j  # unique enough
+        id = 50000 * i + j  # unique enough (max = sum(squares(1..50)) = 42925)
         if id in state:
             return 0  # player 1 wins
         else:
