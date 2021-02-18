@@ -216,7 +216,7 @@ static unsigned int game1(PHAND p)
 //     return max[0] > max[1];
 // }
 
-static unsigned int game2(PHAND p, unsigned int level)
+static unsigned int game2(PHAND p)
 {
     unsigned int i, j, k, win;
     unsigned char draw[PLAYERS];
@@ -256,7 +256,7 @@ static unsigned int game2(PHAND p, unsigned int level)
                 }
             }
             // And recurse
-            win = game2(subgame, level + 1);
+            win = game2(subgame);
         } else {
             win = draw[1] > draw[0];
         }
@@ -285,7 +285,7 @@ int main(void)
 
     // Part 2
     read(player);
-    win = game2(player, 0);
+    win = game2(player);
     res = score(&player[win]);
     printf("Part 2\nwinner : %u\ntarget : 35196\nscore  : %u\n\n", win + 1, res);
 
