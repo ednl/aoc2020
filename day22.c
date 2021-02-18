@@ -1,7 +1,7 @@
 #include <stdio.h>   // printf, fopen, fclose, getline
-#include <stdlib.h>  // free
+#include <stdlib.h>  // malloc, realloc, free
 #include <stdint.h>  // uint32_t
-#include <time.h>    // clock, difftime
+#include <time.h>    // clock_gettime
 
 #define PLAYERS 2
 #define MAXHAND 50
@@ -23,6 +23,8 @@ typedef struct {
     setdata_t *data;
 } SET, *PSET;
 
+// Allocate first batch of memory for set
+// 1 = success, 0 = failure
 static unsigned int set_init(PSET s)
 {
     s->len = 0;
@@ -42,6 +44,8 @@ static unsigned int set_init(PSET s)
     return 0;
 }
 
+// Try to add value to set
+// 1 = success, 0 = failure (already in set, or out of memory)
 static unsigned int set_add(PSET s, setdata_t val)
 {
     unsigned int i, ins = s->len;
@@ -77,6 +81,7 @@ static unsigned int set_add(PSET s, setdata_t val)
     return 1;
 }
 
+// Free allocated memory of set
 static void set_clean(PSET s)
 {
     if (s->data) {
@@ -87,6 +92,7 @@ static void set_clean(PSET s)
     s->maxlen = 0;
 }
 
+// Start or stop a timer
 static double timer(void)
 {
     static unsigned int start = 1;
@@ -103,6 +109,8 @@ static double timer(void)
         return 1.0 * t1.tv_sec + 1e-9 * t1.tv_nsec - (1.0 * t0.tv_sec + 1e-9 * t0.tv_nsec);
     }
 }
+
+// Read puzzle input into data structure
 static void read(PHAND p)
 {
 	FILE *fp;
@@ -134,6 +142,7 @@ static void read(PHAND p)
 	}
 }
 
+// Show hands
 static void show(PHAND p)
 {
     unsigned int i, j, k;
@@ -152,6 +161,7 @@ static void show(PHAND p)
     printf("\n");
 }
 
+// Score of one hand
 static uint32_t score(PHAND p)
 {
     uint32_t id = 0;
@@ -166,12 +176,14 @@ static uint32_t score(PHAND p)
     return id;
 }
 
+// Hash function for two hands
 static uint32_t gameid(PHAND p)
 {
     // Unique enough (max = sum(squares(1..50)) = 42925 and 1<<16 = 65536)
     return (score(p) << 16) | score(&p[1]);
 }
 
+// Crab Combat part 1
 static unsigned int game1(PHAND p)
 {
     unsigned int i, win;
@@ -196,31 +208,12 @@ static unsigned int game1(PHAND p)
     return p[1].size > p[0].size;
 }
 
-// static unsigned int player1wins(PHAND p)
-// {
-//     unsigned int i, j, k, n, max[PLAYERS];
-
-//     for (i = 0; i < PLAYERS; ++i) {
-//         max[i] = 0;
-//         k = p[i].head;
-//         for (j = 0; j < p[i].size; ++j) {
-//             n = p[i].card[k++];
-//             if (k == MAXHAND) {
-//                 k = 0;
-//             }
-//             if (n > max[i]) {
-//                 max[i] = n;
-//             }
-//         }
-//     }
-//     return max[0] > max[1];
-// }
-
+// Crab Combat part 2
 static unsigned int game2(PHAND p)
 {
     unsigned int i, j, k, win;
     unsigned char draw[PLAYERS], n, max[PLAYERS];
-    SET uid = {.len = 0, .maxlen = 0, .data = NULL};
+    SET uid = {.len = 0, .maxlen = 0, .data = NULL};  // needs init or the pointer is garbage and can't be realloc'ed
     HAND subgame[2];
 
     set_init(&uid);
@@ -263,14 +256,16 @@ static unsigned int game2(PHAND p)
             // Recurse if necessary
             win = max[0] > max[1] ? 0 : game2(subgame);
         } else {
+            // Noth enough cards; simply compare draw
             win = draw[1] > draw[0];
         }
 
+        // Stack in order at the bottom of the winner's hand
         for (i = 0; i < PLAYERS; ++i) {
             p[win].card[(p[win].head + p[win].size++) % MAXHAND] = draw[(win + i) % PLAYERS];
         }
     }
-    set_clean(&uid);
+    set_clean(&uid);  // avoid memory leak
     return p[1].size > p[0].size;
 }
 
@@ -289,7 +284,7 @@ int main(void)
     printf("Part 1\nwinner : %u\ntarget : 31629\nscore  : %u\n\n", win + 1, res);
 
     // Part 2
-    read(player);
+    read(player);  // fresh data from disk
     win = game2(player);
     res = score(&player[win]);
     printf("Part 2\nwinner : %u\ntarget : 35196\nscore  : %u\n\n", win + 1, res);
