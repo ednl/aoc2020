@@ -1,5 +1,6 @@
 #include <stdio.h>   // printf, fopen, fclose, getline
 #include <stdlib.h>  // free
+#include <stdint.h>  // uint32_t
 #include <time.h>    // clock, difftime
 
 #define PLAYERS 2

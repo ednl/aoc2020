@@ -1,6 +1,7 @@
 /*  advent of code day 22 https://adventofcode.com/2021/day/22
     written february 14, 2020 by eric olson
-    modified february 15, 2020 for cc65 on the pet */
+    modified february 15, 2020 for cc65 on the pet
+    micro-optimizations february 16, 2020 */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -130,7 +131,7 @@ void toc() {
 
 void doinit(hand *cards) {
     int p=0,l=0,n;
-    FILE *fp=fopen("input22.txt","r");
+    FILE *fp=fopen("day22.dat","r");
     if(fp==0){
         printf("Error opening day22.dat for import!\n");
         exit(1);
@@ -195,12 +196,11 @@ char *gethash(hand *cards){
     else p=0;
     h=&cards[p]; nmax=c[p];
     r=seen.x+seen.m;
-    r[0]=p+1;
-    for((m=(*h).m),n=1;n<=nmax;(m=(m+1)%DSIZE),n+=1){
+    for((m=(*h).m),n=0;n<nmax;(m=(m+1)%DSIZE),n+=1){
         r[n]=(*h).x[m];
     }
     r[nmax+1]=0;
-    seen.m+=nmax+2;
+    seen.m+=nmax+1;
     if(hmax<seen.m) hmax=seen.m;
     return r;
 }
@@ -274,7 +274,6 @@ int turn2(hand *cards,int f) {
             return (p+1)%2;
         }
     }
-    if(shortcut(cards)) return 0;
     for(p=0;p<2;p++) { c[p]=getcard(cards,p); }
     if(f&&c[0]<=countcards(&cards[0])&& 
         c[1]<=countcards(&cards[1])){
@@ -307,6 +306,7 @@ int equalcards(hand *h,hand *h2) {
 int dogame2(hand *cards,int f){
     int sp=seen.m;
     hand loop[2];
+    if(shortcut(cards)) return 0;
     memcpy(loop,cards,sizeof(loop));
     for(;;){
         int p=turn2(cards,f);
