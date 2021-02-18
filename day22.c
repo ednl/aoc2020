@@ -5,6 +5,7 @@
 
 #define PLAYERS 2
 #define MAXHAND 50
+#define SET_INC 64
 static const char *inp = "input22.txt";
 // static const unsigned char player1[] = {28, 50, 9, 11, 4, 45, 19, 26, 42, 43, 31, 46, 21, 40, 33, 20, 7, 6, 17, 44, 5, 39, 35, 27, 10};
 // static const unsigned char player2[] = {18, 16, 29, 41, 14, 12, 30, 37, 36, 24, 48, 38, 47, 34, 15, 8, 49, 23, 1, 3, 32, 25, 22, 13, 2};
@@ -25,7 +26,7 @@ typedef struct {
 static unsigned int set_init(PSET s)
 {
     s->len = 0;
-    s->maxlen = 32;
+    s->maxlen = SET_INC;
     size_t size = s->maxlen * sizeof(setdata_t);
     void *res = s->data == NULL ? malloc(size) : realloc(s->data, size);
     if (res) {
@@ -55,14 +56,14 @@ static unsigned int set_add(PSET s, setdata_t val)
     }
     // Grow if needed
     if (s->len == s->maxlen) {
-        s->maxlen += 32;
+        s->maxlen += SET_INC;
         size_t size = s->maxlen * sizeof(setdata_t);
         void *res = s->data ? realloc(s->data, size) : malloc(size);
         if (res) {
             s->data = (setdata_t*)res;
         } else {
             // No room in the inn
-            s->maxlen -= 32;
+            s->maxlen -= SET_INC;
             return 0;
         }
     }
