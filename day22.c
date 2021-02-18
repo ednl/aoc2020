@@ -219,7 +219,7 @@ static unsigned int game1(PHAND p)
 static unsigned int game2(PHAND p)
 {
     unsigned int i, j, k, win;
-    unsigned char draw[PLAYERS];
+    unsigned char draw[PLAYERS], n, max[PLAYERS];
     SET uid = {.len = 0, .maxlen = 0, .data = NULL};
     HAND subgame[2];
 
@@ -245,18 +245,23 @@ static unsigned int game2(PHAND p)
         if (p[0].size >= draw[0] && p[1].size >= draw[1]) {
             // Copy hands to subgame
             for (i = 0; i < PLAYERS; ++i) {
+                max[i] = 0;
                 subgame[i].size = draw[i];
                 subgame[i].head = 0;
                 k = p[i].head;
                 for (j = 0; j < draw[i]; ++j) {
-                    subgame[i].card[j] = p[i].card[k++];
+                    n = p[i].card[k++];
                     if (k == MAXHAND) {
                         k = 0;
                     }
+                    subgame[i].card[j] = n;
+                    if (n > max[i]) {
+                        max[i] = n;
+                    }
                 }
             }
-            // And recurse
-            win = game2(subgame);
+            // Recurse if necessary
+            win = max[0] > max[1] ? 0 : game2(subgame);
         } else {
             win = draw[1] > draw[0];
         }
