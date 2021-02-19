@@ -4,12 +4,12 @@
 #include <stdbool.h>   // bool, true, false
 #include <time.h>      // clock_gettime
 
-#define CRC32_NBITS        (8)
-#define CRC32_NVALUES      (1 << CRC32_NBITS)
-#define CRC32_MODINDEX     (CRC32_NVALUES - 1)
-#define CRC32_ONESCOMPL32  (0xffffffffU)
-#define CRC32_INITVAL      (CRC32_ONESCOMPL32)
-#define CRC32_G_POLYNOMIAL (0xedb88320U)
+#define CRC32_NBITS     (8)
+#define CRC32_NVALUES   (1 << CRC32_NBITS)
+#define CRC32_MODINDEX  (CRC32_NVALUES - 1)
+#define CRC32_ONESCOMP  (0xffffffffU)
+#define CRC32_INITVAL   (CRC32_ONESCOMP)
+#define CRC32_GPOLYNOM  (0xedb88320U)
 
 // CRC-32 of byte data
 static uint32_t crc32(unsigned char *buf, unsigned int len)
@@ -25,7 +25,7 @@ static uint32_t crc32(unsigned char *buf, unsigned int len)
             c = (uint32_t) n;
             for (k = 0; k < CRC32_NBITS; k++) {
                 if (c & 1) {
-                    c = CRC32_G_POLYNOMIAL ^ (c >> 1);
+                    c = CRC32_GPOLYNOM ^ (c >> 1);
                 } else {
                     c >>= 1;
                 }
@@ -40,7 +40,7 @@ static uint32_t crc32(unsigned char *buf, unsigned int len)
         c = crc_table[(c ^ buf[n]) & CRC32_MODINDEX] ^ (c >> CRC32_NBITS);
     }
 
-    return c ^ CRC32_ONESCOMPL32;
+    return c ^ CRC32_ONESCOMP;
 }
 
 #define PLAYERS 2
