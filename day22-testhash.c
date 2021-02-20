@@ -4,62 +4,63 @@
 #include <stdbool.h>   // bool, true, false
 #include <time.h>      // clock_gettime
 
-#define CRC32_NBITS     (8)
-#define CRC32_NVALUES   (1 << CRC32_NBITS)
-#define CRC32_MODINDEX  (CRC32_NVALUES - 1)
-#define CRC32_ONESCOMP  (0xffffffffU)
-#define CRC32_INITVAL   (CRC32_ONESCOMP)
-//#define CRC32_GPOLYNOM  (0xedb88320U)  // standard
-#define CRC32_GPOLYNOM  (0x82F63B78U)  // Castagnoli
-//#define CRC32_GPOLYNOM  (0xEB31D82EU)  // Koopman
-
-// CRC-32 of byte data
-static uint32_t crc32(unsigned char *buf, unsigned int len)
-{
-    static uint32_t crc_table[CRC32_NVALUES];  // table of CRCs of all n-bit messages (n = 8)
-    static bool crc_table_todo = true;
-    uint32_t c;
-    unsigned int n, k;
-
-    if (crc_table_todo) {
-        // Pre-compute first 2^n CRC values (n = 8)
-        for (n = 0; n < CRC32_NVALUES; ++n) {
-            c = (uint32_t) n;
-            for (k = 0; k < CRC32_NBITS; k++) {
-                if (c & 1) {
-                    c = CRC32_GPOLYNOM ^ (c >> 1);
-                } else {
-                    c >>= 1;
-                }
-            }
-            crc_table[n] = c;
-        }
-        crc_table_todo = false;
-    }
-
-    c = CRC32_INITVAL;
-    for (n = 0; n < len; ++n) {
-        c = crc_table[(c ^ buf[n]) & CRC32_MODINDEX] ^ (c >> CRC32_NBITS);
-    }
-
-    return c ^ CRC32_ONESCOMP;
-}
+static const char *inp = "input22-collision.txt";
 
 #define PLAYERS 2
 #define MAXHAND 50
 #define SETGROW 256
-static const char *inp = "input22-collision.txt";
+
+#define CRC64_CHARBITS   (UINT64_C(8))
+#define CRC64_NBITS      (UINT64_C(64))
+#define CRC64_MBITS      (CRC64_NBITS - CRC64_CHARBITS)
+#define CRC64_MSB        (UINT64_C(1) << (CRC64_NBITS - UINT64_C(1)))
+#define CRC64_TABLESIZE  (UINT64_C(1) << CRC64_CHARBITS)
+#define CRC64_MAXINDEX   (CRC64_TABLESIZE - UINT64_C(1))
+#define CRC64_COMPLEMENT (UINT64_C(-1))
+#define CRC64_GPOLYNOM   (UINT64_C(0x42F0E1EBA9EA3693))
 
 typedef struct {
     unsigned int size, head;
     unsigned char card[MAXHAND];
 } HAND, *PHAND;
 
-typedef uint32_t setdata_t;
+typedef uint64_t setdata_t;
 typedef struct {
     unsigned int len, maxlen;
     setdata_t *data;
 } SET, *PSET;
+
+// CRC-64 of byte data
+static uint64_t crc64(unsigned char *data, unsigned int len)
+{
+    static uint64_t crc64_table[CRC64_TABLESIZE];
+    static bool firstrun = true;
+    uint64_t crc;
+    unsigned int i, j;
+
+    if (firstrun) {
+        firstrun = false;
+        // Make big-endian (MSB) table of first 256 CRC-64 values
+        crc = CRC64_MSB;
+        crc64_table[0] = 0;
+        for (i = 1; i < CRC64_TABLESIZE; i <<= 1) {
+            if (crc & CRC64_MSB) {
+                crc = (crc << 1) ^ CRC64_GPOLYNOM;
+            } else {
+                crc <<= 1;
+            }
+            for (j = 0; j < i; ++j) {
+                crc64_table[i + j] = crc ^ crc64_table[j];
+            }
+        }
+    }
+
+    crc = CRC64_COMPLEMENT;
+    for (i = 0; i < len; ++i) {
+        crc = (crc << CRC64_CHARBITS) ^ crc64_table[(data[i] ^ (crc >> CRC64_MBITS)) & CRC64_MAXINDEX];
+    }
+    return crc ^ CRC64_COMPLEMENT;
+}
 
 // Allocate first batch of memory for set
 // 1 = success, 0 = failure
@@ -177,15 +178,15 @@ static uint32_t score(PHAND p)
     return id;
 }
 
-// Hash function for two hands
-static uint32_t gameid(PHAND p)
-{
-    // Unique enough (max = sum(squares(1..50)) = 42925 and 1<<16 = 65536)
-    return (score(p) << 16) | score(&p[1]);
-}
+// Hash function for two hands based on scoring from part 1
+// static setdata_t gameid(PHAND p)
+// {
+//     // Unique enough (max = sum(squares(1..50)) = 42925 and 1<<16 = 65536)
+//     return (score(p) << 16) | score(&p[1]);
+// }
 
 // Better hash function?
-static uint32_t gameid2(PHAND p)
+static setdata_t gameid2(PHAND p)
 {
     unsigned char buf[MAXHAND + 2];
     unsigned int i, j, k, n;
@@ -202,7 +203,7 @@ static uint32_t gameid2(PHAND p)
         }
         buf[n++] = 0;  // hands delimiter
     }
-    return crc32(buf, n);
+    return crc64(buf, n);
 }
 
 // Crab Combat part 2
@@ -218,7 +219,7 @@ static unsigned int game2(PHAND p)
 
         // Duplicate game? (or set can't be expanded)
         if (!set_add(&uid, gameid2(p))) {
-            set_clean(&uid);
+            set_clean(&uid); // avoid memory leak
             return 0;  // player 1 wins
         }
 
