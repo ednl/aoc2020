@@ -1,5 +1,5 @@
 def read():
-    with open('input22.txt') as f:
+    with open('input22-collision.txt') as f:
         return [list(map(int, d.strip().split('\n')[1:])) for d in f.read().split('\n\n')]
 
 def deckid(deck):

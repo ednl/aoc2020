@@ -6,7 +6,7 @@
 #define PLAYERS 2
 #define MAXHAND 50
 #define SETGROW 32
-static const char *inp = "input22.txt";
+static const char *inp = "input22-collision.txt";
 // static const unsigned char player1[] = {28, 50, 9, 11, 4, 45, 19, 26, 42, 43, 31, 46, 21, 40, 33, 20, 7, 6, 17, 44, 5, 39, 35, 27, 10};
 // static const unsigned char player2[] = {18, 16, 29, 41, 14, 12, 30, 37, 36, 24, 48, 38, 47, 34, 15, 8, 49, 23, 1, 3, 32, 25, 22, 13, 2};
 // static const size_t P1_SIZE = sizeof player1 / sizeof *player1;

@@ -9,7 +9,9 @@
 #define CRC32_MODINDEX  (CRC32_NVALUES - 1)
 #define CRC32_ONESCOMP  (0xffffffffU)
 #define CRC32_INITVAL   (CRC32_ONESCOMP)
-#define CRC32_GPOLYNOM  (0xedb88320U)
+//#define CRC32_GPOLYNOM  (0xedb88320U)  // standard
+#define CRC32_GPOLYNOM  (0x82F63B78U)  // Castagnoli
+//#define CRC32_GPOLYNOM  (0xEB31D82EU)  // Koopman
 
 // CRC-32 of byte data
 static uint32_t crc32(unsigned char *buf, unsigned int len)
@@ -46,7 +48,7 @@ static uint32_t crc32(unsigned char *buf, unsigned int len)
 #define PLAYERS 2
 #define MAXHAND 50
 #define SETGROW 256
-static const char *inp = "input22.txt";
+static const char *inp = "input22-collision.txt";
 
 typedef struct {
     unsigned int size, head;
