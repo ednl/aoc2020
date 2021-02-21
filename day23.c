@@ -1,25 +1,27 @@
-#include <stdio.h>
+#include <stdio.h>     // printf
+#include <stdint.h>    // uint32_t, UINT32_C, uint64_t, UINT64_C
+#include <inttypes.h>  // PRIu32, PRIu64
 
-#define CUPS    1000000u
-#define MOVES  10000000u
-#define LABELS        9u
+#define LABELS  (UINT32_C(9))
+#define CUPS    (UINT32_C(1000000))
+#define MOVES   (UINT32_C(10000000))
 
-unsigned int next[CUPS + 1];
-unsigned int cups[LABELS] = {3, 6, 2, 9, 8, 1, 7, 5, 4};
+static const uint_fast32_t init[LABELS] = {3, 6, 2, 9, 8, 1, 7, 5, 4};  // puzzle input
+static uint_fast32_t next[CUPS + 1];
 
 int main(void)
 {
-    unsigned int i, j, cur, moves, ins, p1, p2, p3;
+    uint_fast32_t i, j, cur, moves, ins, p1, p2, p3;
 
     for (i = 1; i < CUPS; ++i) {
-        next[i] = i + 1u;
+        next[i] = i + 1;
     }
-    next[0] = next[CUPS] = cups[0];
+    next[0] = next[CUPS] = init[0];
 
     for (i = 0; i < LABELS - 1; ++i) {
-        next[cups[i]] = cups[i + 1];
+        next[init[i]] = init[i + 1];
     }
-    next[cups[LABELS - 1]] = CUPS == LABELS ? cups[0] : LABELS + 1;
+    next[init[LABELS - 1]] = CUPS == LABELS ? init[0] : LABELS + 1;
 
     cur = 0;
     moves = MOVES;
@@ -45,12 +47,12 @@ int main(void)
     if (CUPS < 10) {
         i = next[1];
         while (i != 1) {
-            printf("%u", i);
+            printf("%"PRIuFAST32, i);
             i = next[i];
         }
         printf("\n");
     } else {
-        printf("%lu\n", (unsigned long)next[1] * next[next[1]]);
+        printf("%"PRIu64"\n", (uint64_t)next[1] * next[next[1]]);
     }
 
     return 0;

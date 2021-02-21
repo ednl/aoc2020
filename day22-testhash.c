@@ -1,6 +1,6 @@
 #include <stdio.h>     // printf, fopen, fclose, getline
 #include <stdlib.h>    // malloc, realloc, free
-#include <stdint.h>    // uint32_t
+#include <stdint.h>    // uint64_t, UINT64_C
 #include <stdbool.h>   // bool, true, false
 #include <time.h>      // clock_gettime
 
