@@ -1,31 +1,75 @@
-#include <stdio.h>   // printf, fopen, fclose, getline
-#include <stdlib.h>  // malloc, realloc, free
-#include <stdint.h>  // uint32_t
-#include <time.h>    // clock_gettime
+#include <stdio.h>    // printf, fopen, fclose, getline
+#include <stdlib.h>   // malloc, realloc, free
+#include <stdint.h>   // uint32_t
+#include <stdbool.h>  // bool, true, false
+#include <time.h>     // clock_gettime
+
+static const char *inp = "input22.txt";
 
 #define PLAYERS 2
 #define MAXHAND 50
-#define SETGROW 32
-static const char *inp = "input22-collision.txt";
+#define SETGROW 256
 // static const unsigned char player1[] = {28, 50, 9, 11, 4, 45, 19, 26, 42, 43, 31, 46, 21, 40, 33, 20, 7, 6, 17, 44, 5, 39, 35, 27, 10};
 // static const unsigned char player2[] = {18, 16, 29, 41, 14, 12, 30, 37, 36, 24, 48, 38, 47, 34, 15, 8, 49, 23, 1, 3, 32, 25, 22, 13, 2};
 // static const size_t P1_SIZE = sizeof player1 / sizeof *player1;
 // static const size_t P2_SIZE = sizeof player2 / sizeof *player2;
+
+#define CRC64_CHARBITS   (UINT64_C(8))
+#define CRC64_NBITS      (UINT64_C(64))
+#define CRC64_MBITS      (CRC64_NBITS - CRC64_CHARBITS)
+#define CRC64_MSB        (UINT64_C(1) << (CRC64_NBITS - UINT64_C(1)))
+#define CRC64_TABLESIZE  (UINT64_C(1) << CRC64_CHARBITS)
+#define CRC64_MAXINDEX   (CRC64_TABLESIZE - UINT64_C(1))
+#define CRC64_COMPLEMENT (UINT64_C(-1))
+#define CRC64_GPOLYNOM   (UINT64_C(0x42F0E1EBA9EA3693))
 
 typedef struct {
     unsigned int size, head;
     unsigned char card[MAXHAND];
 } HAND, *PHAND;
 
-typedef uint32_t setdata_t;
+typedef uint64_t setdata_t;
 typedef struct {
-    unsigned int len, maxlen;
     setdata_t *data;
+    unsigned int len, maxlen;
 } SET, *PSET;
+
+
+// CRC-64 of byte data
+static uint64_t crc64(unsigned char *data, unsigned int len)
+{
+    static uint64_t crc64_table[CRC64_TABLESIZE];
+    static bool firstrun = true;
+    uint64_t crc;
+    unsigned int i, j;
+
+    if (firstrun) {
+        firstrun = false;
+        // Make big-endian (MSB) table of first 256 CRC-64 values
+        crc = CRC64_MSB;
+        crc64_table[0] = 0;
+        for (i = 1; i < CRC64_TABLESIZE; i <<= 1) {
+            if (crc & CRC64_MSB) {
+                crc = (crc << 1) ^ CRC64_GPOLYNOM;
+            } else {
+                crc <<= 1;
+            }
+            for (j = 0; j < i; ++j) {
+                crc64_table[i + j] = crc ^ crc64_table[j];
+            }
+        }
+    }
+
+    crc = CRC64_COMPLEMENT;
+    for (i = 0; i < len; ++i) {
+        crc = (crc << CRC64_CHARBITS) ^ crc64_table[(data[i] ^ (crc >> CRC64_MBITS)) & CRC64_MAXINDEX];
+    }
+    return crc ^ CRC64_COMPLEMENT;
+}
 
 // Allocate first batch of memory for set
 // 1 = success, 0 = failure
-static unsigned int set_init(PSET s)
+static bool set_init(PSET s)
 {
     s->len = 0;
     s->maxlen = SETGROW;
@@ -33,7 +77,7 @@ static unsigned int set_init(PSET s)
     void *res = s->data == NULL ? malloc(size) : realloc(s->data, size);
     if (res) {
         s->data = (setdata_t*)res;
-        return 1;  // success
+        return true;  // success
     }
     // Failure
     if (s->data) {
@@ -41,12 +85,12 @@ static unsigned int set_init(PSET s)
         s->data = NULL;
     }
     s->maxlen = 0;
-    return 0;
+    return false;
 }
 
 // Try to add value to set
 // 1 = success, 0 = failure (already in set, or out of memory)
-static unsigned int set_add(PSET s, setdata_t val)
+static bool set_add(PSET s, setdata_t val)
 {
     unsigned int i, ins = s->len;
 
@@ -56,7 +100,7 @@ static unsigned int set_add(PSET s, setdata_t val)
     }
     // Already in set?
     if (ins > 0 && s->data[ins - 1] == val) {
-        return 0;
+        return false;
     }
     // Grow if needed
     if (s->len == s->maxlen) {
@@ -68,7 +112,7 @@ static unsigned int set_add(PSET s, setdata_t val)
         } else {
             // No room in the inn
             s->maxlen -= SETGROW;
-            return 0;
+            return false;
         }
     }
     // Shift larger values
@@ -78,7 +122,7 @@ static unsigned int set_add(PSET s, setdata_t val)
     // Insert new value
     s->data[ins] = val;
     s->len++;
-    return 1;
+    return true;
 }
 
 // Free allocated memory of set
@@ -95,17 +139,17 @@ static void set_clean(PSET s)
 // Start or stop a timer
 static double timer(void)
 {
-    static unsigned int start = 1;
+    static bool start = true;
     static struct timespec t0;
     struct timespec t1;
 
     if (start) {
-        start = 0;
+        start = false;
         clock_gettime(CLOCK_MONOTONIC_RAW, &t0);
         return 0;
     } else {
         clock_gettime(CLOCK_MONOTONIC_RAW, &t1);
-        start = 1;
+        start = true;
         return 1.0 * t1.tv_sec + 1e-9 * t1.tv_nsec - (1.0 * t0.tv_sec + 1e-9 * t0.tv_nsec);
     }
 }
@@ -143,23 +187,23 @@ static void read(PHAND p)
 }
 
 // Show hands
-static void show(PHAND p)
-{
-    unsigned int i, j, k;
-
-    for (i = 0; i < PLAYERS; ++i) {
-        printf("Player %i:", i + 1);
-        k = p[i].head;
-        for (j = 0; j < p[i].size; ++j) {
-            printf(" %u", p[i].card[k++]);
-            if (k == MAXHAND) {
-                k = 0;
-            }
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
+// static void show(PHAND p)
+// {
+//     unsigned int i, j, k;
+//
+//     for (i = 0; i < PLAYERS; ++i) {
+//         printf("Player %i:", i + 1);
+//         k = p[i].head;
+//         for (j = 0; j < p[i].size; ++j) {
+//             printf(" %u", p[i].card[k++]);
+//             if (k == MAXHAND) {
+//                 k = 0;
+//             }
+//         }
+//         printf("\n");
+//     }
+//     printf("\n");
+// }
 
 // Score of one hand
 static uint32_t score(PHAND p)
@@ -177,10 +221,31 @@ static uint32_t score(PHAND p)
 }
 
 // Hash function for two hands
-static uint32_t gameid(PHAND p)
+// static uint32_t gameid(PHAND p)
+// {
+//     // Unique enough (max = sum(squares(1..50)) = 42925 and 1<<16 = 65536)
+//     return (score(p) << 16) | score(&p[1]);
+// }
+
+// Better hash function?
+static setdata_t gameid2(PHAND p)
 {
-    // Unique enough (max = sum(squares(1..50)) = 42925 and 1<<16 = 65536)
-    return (score(p) << 16) | score(&p[1]);
+    unsigned char buf[MAXHAND + 2];
+    unsigned int i, j, k, n;
+
+    // Copy circular to linear buffer
+    n = 0;
+    for (i = 0; i < PLAYERS; ++i) {
+        k = p[i].head;
+        for (j = 0; j < p[i].size; ++j) {
+            buf[n++] = p[i].card[k++];
+            if (k == MAXHAND) {
+                k = 0;
+            }
+        }
+        buf[n++] = 0;  // hands delimiter
+    }
+    return crc64(buf, n);
 }
 
 // Crab Combat part 1
@@ -220,8 +285,8 @@ static unsigned int game2(PHAND p)
     while (p[0].size && p[1].size) {
 
         // Duplicate game? (or set can't be expanded)
-        if (!set_add(&uid, gameid(p))) {
-            set_clean(&uid);
+        if (!set_add(&uid, gameid2(p))) {
+            set_clean(&uid);  // avoid memory leak
             return 0;  // player 1 wins
         }
 
@@ -274,21 +339,20 @@ int main(void)
     HAND player[PLAYERS];
     unsigned int win, res;
 
-    timer();
-
     // Part 1
+    timer();
     read(player);
-    show(player);
+    // show(player);
     win = game1(player);
     res = score(&player[win]);
-    printf("Part 1\nwinner : %u\ntarget : 31629\nscore  : %u\n\n", win + 1, res);
+    printf("1: %u %u %.6f\n", win + 1, res, timer());  // for my puzzle input: 1 31629
 
     // Part 2
+    timer();
     read(player);  // fresh data from disk
     win = game2(player);
     res = score(&player[win]);
-    printf("Part 2\nwinner : %u\ntarget : 35196\nscore  : %u\n\n", win + 1, res);
+    printf("2: %u %u %.6f\n", win + 1, res, timer());  // for my puzzle input: 1 35196
 
-    printf("time  : %.6f s\n", timer());
     return 0;
 }
