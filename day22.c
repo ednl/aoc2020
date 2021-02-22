@@ -4,15 +4,11 @@
 #include <stdbool.h>  // bool, true, false
 #include <time.h>     // clock_gettime
 
-static const char *inp = "input22.txt";
+#define READFILE  // if defined then read puzzle input from disk, else read from const
 
 #define PLAYERS 2
 #define MAXHAND 50
 #define SETGROW 256
-// static const unsigned char player1[] = {28, 50, 9, 11, 4, 45, 19, 26, 42, 43, 31, 46, 21, 40, 33, 20, 7, 6, 17, 44, 5, 39, 35, 27, 10};
-// static const unsigned char player2[] = {18, 16, 29, 41, 14, 12, 30, 37, 36, 24, 48, 38, 47, 34, 15, 8, 49, 23, 1, 3, 32, 25, 22, 13, 2};
-// static const size_t P1_SIZE = sizeof player1 / sizeof *player1;
-// static const size_t P2_SIZE = sizeof player2 / sizeof *player2;
 
 #define CRC64_CHARBITS   (UINT64_C(8))
 #define CRC64_NBITS      (UINT64_C(64))
@@ -23,6 +19,15 @@ static const char *inp = "input22.txt";
 #define CRC64_COMPLEMENT (UINT64_C(-1))
 #define CRC64_GPOLYNOM   (UINT64_C(0x42F0E1EBA9EA3693))
 
+#if defined(READFILE)
+static const char *inp = "input22.txt";
+#else
+static const unsigned char player1[] = {28, 50, 9, 11, 4, 45, 19, 26, 42, 43, 31, 46, 21, 40, 33, 20, 7, 6, 17, 44, 5, 39, 35, 27, 10};
+static const unsigned char player2[] = {18, 16, 29, 41, 14, 12, 30, 37, 36, 24, 48, 38, 47, 34, 15, 8, 49, 23, 1, 3, 32, 25, 22, 13, 2};
+static const size_t P1_SIZE = sizeof player1 / sizeof *player1;
+static const size_t P2_SIZE = sizeof player2 / sizeof *player2;
+#endif
+
 typedef struct {
     unsigned int size, head;
     unsigned char card[MAXHAND];
@@ -30,12 +35,11 @@ typedef struct {
 
 typedef uint64_t setdata_t;
 typedef struct {
-    setdata_t *data;
     unsigned int len, maxlen;
+    setdata_t *data;
 } SET, *PSET;
 
-
-// CRC-64 of byte data
+// CRC-64 of a byte array, MSB-first version
 static uint64_t crc64(unsigned char *data, unsigned int len)
 {
     static uint64_t crc64_table[CRC64_TABLESIZE];
@@ -43,9 +47,9 @@ static uint64_t crc64(unsigned char *data, unsigned int len)
     uint64_t crc;
     unsigned int i, j;
 
+    // Make big-endian (MSB) table of first 256 CRC-64 values
     if (firstrun) {
         firstrun = false;
-        // Make big-endian (MSB) table of first 256 CRC-64 values
         crc = CRC64_MSB;
         crc64_table[0] = 0;
         for (i = 1; i < CRC64_TABLESIZE; i <<= 1) {
@@ -59,7 +63,7 @@ static uint64_t crc64(unsigned char *data, unsigned int len)
             }
         }
     }
-
+    // Calculate CRC-64 by using table of cached values
     crc = CRC64_COMPLEMENT;
     for (i = 0; i < len; ++i) {
         crc = (crc << CRC64_CHARBITS) ^ crc64_table[(data[i] ^ (crc >> CRC64_MBITS)) & CRC64_MAXINDEX];
@@ -67,8 +71,8 @@ static uint64_t crc64(unsigned char *data, unsigned int len)
     return crc ^ CRC64_COMPLEMENT;
 }
 
-// Allocate first batch of memory for set
-// 1 = success, 0 = failure
+// Initialise set by allocating first batch of memory
+// return true on success
 static bool set_init(PSET s)
 {
     s->len = 0;
@@ -89,17 +93,17 @@ static bool set_init(PSET s)
 }
 
 // Try to add value to set
-// 1 = success, 0 = failure (already in set, or out of memory)
+// return true on success (false = already in set, or out of memory)
 static bool set_add(PSET s, setdata_t val)
 {
-    unsigned int i, ins = s->len;
+    unsigned int i = 0;
 
-    // Determine insertion point
-    while (ins > 0 && s->data[ins - 1] > val) {
-        --ins;
+    // Check if already in set
+    while (i < s->len && s->data[i] != val) {
+        ++i;
     }
-    // Already in set?
-    if (ins > 0 && s->data[ins - 1] == val) {
+    // Refuse duplicate hash
+    if (i < s->len) {
         return false;
     }
     // Grow if needed
@@ -115,13 +119,8 @@ static bool set_add(PSET s, setdata_t val)
             return false;
         }
     }
-    // Shift larger values
-    for (i = s->len; i > ins; --i) {
-        s->data[i] = s->data[i - 1];
-    }
-    // Insert new value
-    s->data[ins] = val;
-    s->len++;
+    // Add new value at end
+    s->data[s->len++] = val;
     return true;
 }
 
@@ -157,6 +156,7 @@ static double timer(void)
 // Read puzzle input into data structure
 static void read(PHAND p)
 {
+#if defined(READFILE)
 	FILE *fp;
 	char *s = NULL;
 	size_t t = 0;
@@ -184,26 +184,34 @@ static void read(PHAND p)
 		free(s);
 		fclose(fp);
 	}
+#else
+    memcpy(&p[0].card, player1, sizeof player1);
+    p[0].size = sizeof player1 / sizeof *player1;
+    p[0].head = 0;
+    memcpy(&p[1].card, player2, sizeof player2);
+    p[1].size = sizeof player2 / sizeof *player2;
+    p[1].head = 0;
+#endif
 }
 
 // Show hands
-// static void show(PHAND p)
-// {
-//     unsigned int i, j, k;
-//
-//     for (i = 0; i < PLAYERS; ++i) {
-//         printf("Player %i:", i + 1);
-//         k = p[i].head;
-//         for (j = 0; j < p[i].size; ++j) {
-//             printf(" %u", p[i].card[k++]);
-//             if (k == MAXHAND) {
-//                 k = 0;
-//             }
-//         }
-//         printf("\n");
-//     }
-//     printf("\n");
-// }
+static void show(PHAND p)
+{
+    unsigned int i, j, k;
+
+    for (i = 0; i < PLAYERS; ++i) {
+        printf("Player %i:", i + 1);
+        k = p[i].head;
+        for (j = 0; j < p[i].size; ++j) {
+            printf(" %u", p[i].card[k++]);
+            if (k == MAXHAND) {
+                k = 0;
+            }
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
 
 // Score of one hand
 static uint32_t score(PHAND p)
@@ -220,15 +228,8 @@ static uint32_t score(PHAND p)
     return id;
 }
 
-// Hash function for two hands
-// static uint32_t gameid(PHAND p)
-// {
-//     // Unique enough (max = sum(squares(1..50)) = 42925 and 1<<16 = 65536)
-//     return (score(p) << 16) | score(&p[1]);
-// }
-
-// Better hash function?
-static setdata_t gameid2(PHAND p)
+// Game ID = CRC-64 hash of two hands of cards
+static setdata_t gameid(PHAND p)
 {
     unsigned char buf[MAXHAND + 2];
     unsigned int i, j, k, n;
@@ -284,8 +285,8 @@ static unsigned int game2(PHAND p)
     set_init(&uid);
     while (p[0].size && p[1].size) {
 
-        // Duplicate game? (or set can't be expanded)
-        if (!set_add(&uid, gameid2(p))) {
+        // Duplicate game? (or: set can't be expanded)
+        if (!set_add(&uid, gameid(p))) {
             set_clean(&uid);  // avoid memory leak
             return 0;  // player 1 wins
         }
@@ -319,9 +320,11 @@ static unsigned int game2(PHAND p)
                 }
             }
             // Recurse if necessary
+            // If player 1 holds the highest card, they will win either by regular play or by repetition
+            // If player 2 holds the highest card, player 1 might still win by repetition, so recursing is necessary
             win = max[0] > max[1] ? 0 : game2(subgame);
         } else {
-            // Noth enough cards; simply compare draw
+            // Noth enough cards for subgame; determine winner by who drew the highest card
             win = draw[1] > draw[0];
         }
 
