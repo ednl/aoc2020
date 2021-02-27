@@ -13,14 +13,14 @@ int main(void)
 {
     uint_fast32_t i, j, cur, moves, ins, p1, p2, p3;
 
-    // Set up all cups in a circle (cup 0 is extra)
+    // Arrange all cups in a circle (cup 0 is extra)
     // where "next[1] = 2" means that cup 2 comes after cup 1
     next[0] = next[CUPCOUNT] = init[0];
     for (i = 1; i < CUPCOUNT; ++i) {
         next[i] = i + 1;
     }
 
-    // Use the puzzle input to jumble up the first few cups
+    // Use the puzzle input to seed the first few cup labels
     for (i = 0; i < LABELS - 1; ++i) {
         next[init[i]] = init[i + 1];
     }
@@ -48,16 +48,16 @@ int main(void)
         next[cur] = j;
     }
 
-    if (CUPCOUNT < 10) {
+    #if (CUPCOUNT < 10)
         i = next[1];
         while (i != 1) {
             printf("%"PRIuFAST32, i);
             i = next[i];
         }
         printf("\n");
-    } else {
+    #else
         printf("%"PRIu64"\n", (uint64_t)next[1] * next[next[1]]);
-    }
+    #endif
 
     return 0;
 }
