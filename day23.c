@@ -11,7 +11,7 @@ static uint_fast32_t next[CUPCOUNT + 1];  // index 0 not used, so, need one extr
 
 int main(void)
 {
-    uint_fast32_t i, j, cur, moves, ins, p1, p2, p3;
+    uint_fast32_t i, moves, cur, ins, p1, p2, p3;
 
     // Arrange all cups in a circle (cup 0 is extra)
     // where "next[1] = 2" means that cup 2 comes after cup 1
@@ -42,10 +42,10 @@ int main(void)
             if (!ins)
                 ins = CUPCOUNT;
         }
-        j = next[p3];
+        i = next[p3];
         next[p3] = next[ins];
         next[ins] = next[cur];
-        next[cur] = j;
+        next[cur] = i;
     }
 
     #if (CUPCOUNT < 10)
