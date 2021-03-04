@@ -8,6 +8,10 @@
 static const char *inp = "input24.txt";
 static const int turns = 100;
 
+// Parsed input
+static signed char *tile;
+static int lines = 0;
+
 // Hexagonal grid, size to be determined
 static unsigned char *grid = NULL;
 static int origx = 0, origy = 0, width = 0, height = 0, gridsize = 0;
@@ -27,6 +31,23 @@ static double timer(void)
         start = true;
         return 1.0 * t1.tv_sec + 1e-9 * t1.tv_nsec - (1.0 * t0.tv_sec + 1e-9 * t0.tv_nsec);
     }
+}
+
+static int countlines(void)
+{
+    FILE *fp = NULL;
+    char *s = NULL;
+    size_t t = 0;
+    int n = 0;
+
+    if ((fp = fopen(inp, "r")) != NULL) {
+        while (getline(&s, &t, fp) > 0) {
+            ++n;
+        }
+        free(s);
+        fclose(fp);
+    }
+    return n;
 }
 
 static void parseline(const char * const s, int * const dx, int * const dy)
@@ -61,11 +82,13 @@ static void getdims(void)
     FILE *fp = NULL;
     char *s = NULL;
     size_t t = 0;
-    int minx = 0, maxx = 0, miny = 0, maxy = 0, x, y;
+    int minx = 0, maxx = 0, miny = 0, maxy = 0, n = 0, x, y;
 
     if ((fp = fopen(inp, "r")) != NULL) {
         while (getline(&s, &t, fp) > 0) {
             parseline(s, &x, &y);
+            tile[n * 2] = (signed char)x;
+            tile[n * 2 + 1] = (signed char)y;
             if (x < minx) {
                 minx = x;
             } else if (x > maxx) {
@@ -76,6 +99,7 @@ static void getdims(void)
             } else if (y > maxy) {
                 maxy = y;
             }
+            ++n;
         }
         free(s);
         fclose(fp);
@@ -88,7 +112,12 @@ static void getdims(void)
     gridsize = width * height;
 }
 
-static int counttiles(void)
+static inline int ix(int x, int y)
+{
+    return width * y + x;
+}
+
+static int blacktiles(void)
 {
     int i, n = 0;
 
@@ -98,25 +127,10 @@ static int counttiles(void)
     return n;
 }
 
-static inline int ix(int x, int y)
-{
-    return width * y + x;
-}
-
 static void part1(void)
 {
-    FILE *fp = NULL;
-    char *s = NULL;
-    size_t t = 0;
-    int x, y;
-
-    if ((fp = fopen(inp, "r")) != NULL) {
-        while (getline(&s, &t, fp) > 0) {
-            parseline(s, &x, &y);
-            grid[ix(origx + x, origy + y)] ^= 1;
-        }
-        free(s);
-        fclose(fp);
+    for (int i = 0; i < lines * 2; i += 2) {
+        grid[ix(origx + tile[i], origy + tile[i + 1])] ^= 1;
     }
 }
 
@@ -161,13 +175,18 @@ int main(void)
 {
     timer();
 
+    lines = countlines();
+    tile = malloc((size_t)(lines * 2) * sizeof *tile);
     getdims();
     grid = malloc((size_t)gridsize * sizeof *grid);
     memset(grid, 0, gridsize);
+
     part1();
-    printf("Part 1: %d\n", counttiles());
+    printf("Part 1: %d\n", blacktiles());
+    free(tile);
+
     part2();
-    printf("Part 2: %d\n", counttiles());
+    printf("Part 2: %d\n", blacktiles());
     free(grid);
 
     printf("Time: %.5f s\n", timer());
