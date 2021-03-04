@@ -6,28 +6,67 @@
 static const char *inp = "input24.txt";
 static const int turns = 100;
 
-// Hexagonal grid, max size to be determined
+// Hexagonal grid, size to be determined
 static unsigned char *grid = NULL;
-static int midpoint = 0, width = 0, gridsize = 0;
+static int origx = 0, origy = 0, width = 0, height = 0, gridsize = 0;
 
-static int maxlinelen(void)
+static void parseline(const char * const s, int * const dx, int * const dy)
+{
+    const char *c = s;
+    int x = 0, y = 0;
+
+    while (*c) {
+        if (*c == 'e') {
+            ++x;                  // E
+        } else if (*c == 'w') {
+            --x;                  // W
+        } else if (*c == 'n') {
+            --y;                  // NW
+            if (*(++c) == 'e') {
+                ++x;              // NE
+            }
+        } else if (*c == 's') {
+            ++y;                  // SE
+            if (*(++c) == 'w') {
+                --x;              // SW
+            }
+        }
+        ++c;
+    }
+    *dx = x;
+    *dy = y;
+}
+
+static void getdims(void)
 {
     FILE *fp = NULL;
     char *s = NULL;
     size_t t = 0;
-    int maxlen = 0, n;
+    int minx = 0, maxx = 0, miny = 0, maxy = 0, x, y;
 
-    // Count lines, determine max line length
     if ((fp = fopen(inp, "r")) != NULL) {
-        while ((n = (int)getline(&s, &t, fp)) > 0) {
-            if (n > maxlen) {
-                maxlen = n;  // includes delimiter
+        while (getline(&s, &t, fp) > 0) {
+            parseline(s, &x, &y);
+            if (x < minx) {
+                minx = x;
+            } else if (x > maxx) {
+                maxx = x;
+            }
+            if (y < miny) {
+                miny = y;
+            } else if (y > maxy) {
+                maxy = y;
             }
         }
         free(s);
         fclose(fp);
     }
-    return maxlen;
+    // Include border of zeros
+    origx = turns - minx + 1;
+    origy = turns - miny + 1;
+    width = turns * 2 + maxx - minx + 3;
+    height = turns * 2 + maxy - miny + 3;
+    gridsize = width * height;
 }
 
 static int counttiles(void)
@@ -40,7 +79,7 @@ static int counttiles(void)
     return n;
 }
 
-static int ix(int x, int y)
+static inline int ix(int x, int y)
 {
     return width * y + x;
 }
@@ -48,68 +87,41 @@ static int ix(int x, int y)
 static void part1(void)
 {
     FILE *fp = NULL;
-    char *s = NULL, *c;
+    char *s = NULL;
     size_t t = 0;
-    int q, r;
+    int x, y;
 
     if ((fp = fopen(inp, "r")) != NULL) {
         while (getline(&s, &t, fp) > 0) {
-            c = s;
-            q = r = midpoint;  // axial coordinates, start in middle
-            while (*c != '\n' && *c != '\0') {
-                if (*c == 'e') {
-                    ++q;
-                } else if (*c == 'w') {
-                    --q;
-                } else if (*c == 'n') {
-                    --r;
-                    if (*(++c) == 'e') {
-                        ++q;
-                    }
-                } else if (*c == 's') {
-                    ++r;
-                    if (*(++c) == 'w') {
-                        --q;
-                    }
-                }
-                ++c;
-            }
-            grid[ix(q, r)] ^= 1;
+            parseline(s, &x, &y);
+            grid[ix(origx + x, origy + y)] ^= 1;
         }
         free(s);
         fclose(fp);
     }
 }
 
-static unsigned char neighbours(unsigned char *a, int x, int y)
-{
-    unsigned char n = 0;
-
-    n += a[ix(x + 1, y    )];  // E
-    n += a[ix(x - 1, y    )];  // W
-    n += a[ix(x + 1, y - 1)];  // NE
-    n += a[ix(x    , y - 1)];  // NW
-    n += a[ix(x    , y + 1)];  // SE
-    n += a[ix(x - 1, y + 1)];  // SW
-    return n;
-}
-
 static void part2(void)
 {
-    int x, y, i, j;
-    unsigned char t, n, *grid2, *a, *b, *tmp;
+    int x, y, i, j, n;
+    unsigned char t, *grid2, *a, *b, *tmp;
 
     grid2 = malloc((size_t)gridsize * sizeof *grid);
     memset(grid2, 0, gridsize);
     a = grid;
     b = grid2;
     for (i = turns; i >= 1; --i) {
-        // Use turn counter as grid reach limiter
-        for (y = i; y < width - i; ++y) {
+        // Use turn counter as reach limiter
+        for (y = i; y < height - i; ++y) {
             for (x = i; x < width - i; ++x) {
                 j = ix(x, y);
                 t = a[j];
-                n = neighbours(a, x, y);
+                n  = a[ix(x + 1, y    )];  // E
+                n += a[ix(x - 1, y    )];  // W
+                n += a[ix(x + 1, y - 1)];  // NE
+                n += a[ix(x    , y - 1)];  // NW
+                n += a[ix(x    , y + 1)];  // SE
+                n += a[ix(x - 1, y + 1)];  // SW
                 if (t == 0 && n == 2) {
                     b[j] = 1;
                 } else if (t == 1 && (n == 0 || n > 2)) {
@@ -128,10 +140,7 @@ static void part2(void)
 
 int main(void)
 {
-    // Get line length, add turns => max grid size
-    midpoint = maxlinelen() + turns;  // mid point
-    width = midpoint * 2 - 1;         // width and height of the grid
-    gridsize = width * width;         // array length
+    getdims();
     grid = malloc((size_t)gridsize * sizeof *grid);
     memset(grid, 0, gridsize);
 
