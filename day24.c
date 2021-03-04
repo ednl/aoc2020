@@ -1,5 +1,6 @@
 #include <stdio.h>   // getline
-#include <stdlib.h>
+#include <stdlib.h>  // malloc, free
+#include <string.h>  // memset
 
 // Puzzle input file name
 static const char *inp = "input24.txt";
@@ -39,7 +40,7 @@ static int counttiles(void)
     return n;
 }
 
-static int index(int x, int y)
+static int ix(int x, int y)
 {
     return width * y + x;
 }
@@ -73,7 +74,7 @@ static void part1(void)
                 }
                 ++c;
             }
-            grid[index(q, r)] ^= 1;
+            grid[ix(q, r)] ^= 1;
         }
         free(s);
         fclose(fp);
@@ -84,12 +85,12 @@ static unsigned char neighbours(unsigned char *a, int x, int y)
 {
     unsigned char n = 0;
 
-    n += a[index(x + 1, y    )];  // E
-    n += a[index(x - 1, y    )];  // W
-    n += a[index(x + 1, y - 1)];  // NE
-    n += a[index(x    , y - 1)];  // NW
-    n += a[index(x    , y + 1)];  // SE
-    n += a[index(x - 1, y + 1)];  // SW
+    n += a[ix(x + 1, y    )];  // E
+    n += a[ix(x - 1, y    )];  // W
+    n += a[ix(x + 1, y - 1)];  // NE
+    n += a[ix(x    , y - 1)];  // NW
+    n += a[ix(x    , y + 1)];  // SE
+    n += a[ix(x - 1, y + 1)];  // SW
     return n;
 }
 
@@ -99,13 +100,14 @@ static void part2(void)
     unsigned char t, n, *grid2, *a, *b, *tmp;
 
     grid2 = malloc((size_t)gridsize * sizeof *grid);
+    memset(grid2, 0, gridsize);
     a = grid;
     b = grid2;
     for (i = turns; i >= 1; --i) {
         // Use turn counter as grid reach limiter
         for (y = i; y < width - i; ++y) {
             for (x = i; x < width - i; ++x) {
-                j = index(x, y);
+                j = ix(x, y);
                 t = a[j];
                 n = neighbours(a, x, y);
                 if (t == 0 && n == 2) {
@@ -131,6 +133,7 @@ int main(void)
     width = midpoint * 2 - 1;         // width and height of the grid
     gridsize = width * width;         // array length
     grid = malloc((size_t)gridsize * sizeof *grid);
+    memset(grid, 0, gridsize);
 
     part1();
     printf("Part 1: %d\n", counttiles());
