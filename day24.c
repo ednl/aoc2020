@@ -1,6 +1,8 @@
-#include <stdio.h>   // getline
-#include <stdlib.h>  // malloc, free
-#include <string.h>  // memset
+#include <stdio.h>    // getline
+#include <stdlib.h>   // malloc, free
+#include <string.h>   // memset
+#include <stdbool.h>  // bool, true, false
+#include <time.h>     // clock_gettime
 
 // Puzzle input file name
 static const char *inp = "input24.txt";
@@ -9,6 +11,23 @@ static const int turns = 100;
 // Hexagonal grid, size to be determined
 static unsigned char *grid = NULL;
 static int origx = 0, origy = 0, width = 0, height = 0, gridsize = 0;
+
+static double timer(void)
+{
+    static bool start = true;
+    static struct timespec t0;
+    struct timespec t1;
+
+    if (start) {
+        start = false;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &t0);
+        return 0;
+    } else {
+        clock_gettime(CLOCK_MONOTONIC_RAW, &t1);
+        start = true;
+        return 1.0 * t1.tv_sec + 1e-9 * t1.tv_nsec - (1.0 * t0.tv_sec + 1e-9 * t0.tv_nsec);
+    }
+}
 
 static void parseline(const char * const s, int * const dx, int * const dy)
 {
@@ -140,16 +159,17 @@ static void part2(void)
 
 int main(void)
 {
+    timer();
+
     getdims();
     grid = malloc((size_t)gridsize * sizeof *grid);
     memset(grid, 0, gridsize);
-
     part1();
     printf("Part 1: %d\n", counttiles());
-
     part2();
     printf("Part 2: %d\n", counttiles());
-
     free(grid);
+
+    printf("Time: %.5f s\n", timer());
     return 0;
 }
