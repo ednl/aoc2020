@@ -1,61 +1,143 @@
 #include <stdio.h>   // getline
 #include <stdlib.h>
 
+// Puzzle input file name
 static const char *inp = "input24.txt";
-static const int axq[] = {1, 1, 0, -1, -1, 0};
-static const int axr[] = {0, -1, -1, 0, 1, 1};
+static const int turns = 100;
 
-static int part1(void)
+// Hexagonal grid, max size to be determined
+static unsigned char *grid = NULL;
+static int midpoint = 0, width = 0, gridsize = 0;
+
+static int maxlinelen(void)
 {
     FILE *fp = NULL;
-    char *s = NULL, *c;
+    char *s = NULL;
     size_t t = 0;
-    int n = 0, q, r;
+    int maxlen = 0, n;
 
-    // Determine max
+    // Count lines, determine max line length
     if ((fp = fopen(inp, "r")) != NULL) {
-        while (getline(&s, &t, fp) > 0) {
-            q = r = 0;
-            c = s;
-            while (*c != '\n' && *c != '\r' && *c != '\0') {
-                if (*c == 'e') {
-                    q += axq[0];
-                    r += axr[0];
-                } else if (*c == 'w') {
-                    q += axq[3];
-                    r += axr[3];
-                } else if (*c == 'n') {
-                    ++c;
-                    if (*c == 'e') {
-                        q += axq[1];
-                        r += axr[1];
-                    } else if (*c == 'w') {
-                        q += axq[2];
-                        r += axr[2];
-                    }
-                } else if (*c == 's') {
-                    ++c;
-                    if (*c == 'e') {
-                        q += axq[5];
-                        r += axr[5];
-                    } else if (*c == 'w') {
-                        q += axq[4];
-                        r += axr[4];
-                    }
-                }
-                ++c;
+        while ((n = (int)getline(&s, &t, fp)) > 0) {
+            if (n > maxlen) {
+                maxlen = n;  // includes delimiter
             }
-            printf("%3d %3d %3d\n", n, q, r);
-            ++n;
         }
         free(s);
         fclose(fp);
     }
+    return maxlen;
+}
+
+static int counttiles(void)
+{
+    int i, n = 0;
+
+    for (i = 0; i < gridsize; ++i) {
+        n += grid[i];
+    }
     return n;
+}
+
+static int index(int x, int y)
+{
+    return width * y + x;
+}
+
+static void part1(void)
+{
+    FILE *fp = NULL;
+    char *s = NULL, *c;
+    size_t t = 0;
+    int q, r;
+
+    if ((fp = fopen(inp, "r")) != NULL) {
+        while (getline(&s, &t, fp) > 0) {
+            c = s;
+            q = r = midpoint;  // axial coordinates, start in middle
+            while (*c != '\n' && *c != '\0') {
+                if (*c == 'e') {
+                    ++q;
+                } else if (*c == 'w') {
+                    --q;
+                } else if (*c == 'n') {
+                    --r;
+                    if (*(++c) == 'e') {
+                        ++q;
+                    }
+                } else if (*c == 's') {
+                    ++r;
+                    if (*(++c) == 'w') {
+                        --q;
+                    }
+                }
+                ++c;
+            }
+            grid[index(q, r)] ^= 1;
+        }
+        free(s);
+        fclose(fp);
+    }
+}
+
+static unsigned char neighbours(unsigned char *a, int x, int y)
+{
+    unsigned char n = 0;
+
+    n += a[index(x + 1, y    )];  // E
+    n += a[index(x - 1, y    )];  // W
+    n += a[index(x + 1, y - 1)];  // NE
+    n += a[index(x    , y - 1)];  // NW
+    n += a[index(x    , y + 1)];  // SE
+    n += a[index(x - 1, y + 1)];  // SW
+    return n;
+}
+
+static void part2(void)
+{
+    int x, y, i, j;
+    unsigned char t, n, *grid2, *a, *b, *tmp;
+
+    grid2 = malloc((size_t)gridsize * sizeof *grid);
+    a = grid;
+    b = grid2;
+    for (i = turns; i >= 1; --i) {
+        // Use turn counter as grid reach limiter
+        for (y = i; y < width - i; ++y) {
+            for (x = i; x < width - i; ++x) {
+                j = index(x, y);
+                t = a[j];
+                n = neighbours(a, x, y);
+                if (t == 0 && n == 2) {
+                    b[j] = 1;
+                } else if (t == 1 && (n == 0 || n > 2)) {
+                    b[j] = 0;
+                } else {
+                    b[j] = t;
+                }
+            }
+        }
+        tmp = a;
+        a = b;
+        b = tmp;
+    }
+    free(grid2);
 }
 
 int main(void)
 {
+    // Get line length, add turns => max grid size
+    midpoint = maxlinelen() + turns;  // mid point
+    width = midpoint * 2 - 1;         // width and height of the grid
+    gridsize = width * width;         // array length
+    grid = malloc((size_t)gridsize * sizeof *grid);
+
     part1();
+    printf("Part 1: %d\n", counttiles());
+
+    part2();
+    printf("Part 2: %d\n", counttiles());
+
+    free(grid);
     return 0;
 }
