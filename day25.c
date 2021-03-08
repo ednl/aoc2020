@@ -62,10 +62,14 @@ static uint_fast32_t dhke(uint_fast32_t p, uint_fast32_t q)
 
 static void result(uint_fast32_t p, uint_fast32_t q)
 {
-    int i, loop = 100;
+    int i, warmup = 3, loop = 100;
     volatile uint_fast32_t r1 = 0, r2 = 0;
     double t, t1 = 0, t2 = 0, t1min = 10, t2min = 10, t1max = 0, t2max = 0;
 
+    for (i = 0; i < warmup; ++i) {
+        r1 = dhke(p, q);
+        r2 = dhke(q, p);
+    }
     for (i = 0; i < loop; ++i) {
         timer(); r1 = dhke(p, q); t = timer(); if (t < t1min) { t1min = t; } if (t > t1max) { t1max = t; } t1 += t;
         timer(); r2 = dhke(q, p); t = timer(); if (t < t2min) { t2min = t; } if (t > t2max) { t2max = t; } t2 += t;
