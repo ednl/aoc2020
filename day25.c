@@ -15,8 +15,8 @@
 #include <stdbool.h>   // bool, true, false
 #include <time.h>      // clock_gettime
 
-#define BASE (UINT64_C(7)) 
-#define MOD  (UINT64_C(20201227))
+#define BASE (UINT32_C(7)) 
+#define MOD  (UINT32_C(20201227))
 
 static double timer(void)
 {
@@ -35,45 +35,47 @@ static double timer(void)
     }
 }
 
-static uint64_t dhke(uint64_t p, uint64_t q)
+// Break Diffie-Hellman!!1!
+static uint_fast32_t dhke(uint_fast32_t p, uint_fast32_t q)
 {
-    uint64_t e = 0, k = 1U;
-    while (k != p && k != q) {  // symmetry in p, q
-        k = k * BASE % MOD;
-        ++e;                    // exponent = multiplication count
+    // Naive discrete logarithm
+    uint_fast32_t e = 0, k = 1U;
+    while (k != p && k != q) {    // symmetry in p, q
+        k = k * BASE % MOD;       // all 32-bit
+        ++e;                      // exponent = multiplication count
     }
-    uint64_t b = k == q ? p : q;
+    uint64_t b = k == q ? p : q;  // new base is a 64-bit int
 
     // Modular exponentiation with fixed modulus
     // https://en.wikipedia.org/wiki/Modular_exponentiation#Right-to-left_binary_method
-    uint64_t r = 1U;
-    b %= MOD;
+    uint64_t r = 1U, m = MOD;     // only use 64-bit now (except e)
+    b %= m;
     while (e) {
         if (e & 1U) {
-            r = r * b % MOD;
+            r = r * b % m;
         }
-        b = b * b % MOD;
-        e >>= 1U;
+        b = b * b % m;
+        e >>= 1;
     }
-    return r;
+    return (uint_fast32_t)r;
 }
 
-static void result(uint64_t p, uint64_t q)
+static void result(uint_fast32_t p, uint_fast32_t q)
 {
-    timer();
-    uint64_t r = dhke(p, q);
-    printf("  %8"PRIu64" %8"PRIu64" : %8"PRIu64"  (%.5f s)\n", p, q, r, timer());
+    int i, loop = 100;
+    volatile uint_fast32_t r1 = 0, r2 = 0;
+    double t, t1 = 0, t2 = 0, t1min = 10, t2min = 10;
 
-    timer();
-    r = dhke(q, p);
-    printf("  %8"PRIu64" %8"PRIu64" : %8"PRIu64"  (%.5f s)\n", q, p, r, timer());
+    for (i = 0; i < loop; ++i) {
+        timer(); r1 = dhke(p, q); t = timer(); if (t < t1min) { t1min = t; } t1 += t;
+        timer(); r2 = dhke(q, p); t = timer(); if (t < t2min) { t2min = t; } t2 += t;
+    }
+    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32"  (min %.5f avg %.5f s)\n", p, q, r1, t1min, t1 / loop);
+    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32"  (min %.5f avg %.5f s)\n", q, p, r2, t2min, t2 / loop);
 }
 
 int main(void)
 {
-    printf("\nexample\n");
-    result(5764801, 17807724);
-
     printf("\nalgorithm (ednl)\n");
     result(15113849, 4206373);
 
@@ -83,5 +85,6 @@ int main(void)
     printf("\nlurk101\n");
     result(16915772, 18447943);
 
+    printf("\n");
     return 0;
 }
