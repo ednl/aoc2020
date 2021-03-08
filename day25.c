@@ -70,8 +70,8 @@ static void result(uint_fast32_t p, uint_fast32_t q)
         timer(); r1 = dhke(p, q); t = timer(); if (t < t1min) { t1min = t; } if (t > t1max) { t1max = t; } t1 += t;
         timer(); r2 = dhke(q, p); t = timer(); if (t < t2min) { t2min = t; } if (t > t2max) { t2max = t; } t2 += t;
     }
-    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32"  (min %.5f avg %.5f max %.5f s)\n", p, q, r1, t1min, t1 / loop, t1max);
-    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32"  (min %.5f avg %.5f max %.5f s)\n", q, p, r2, t2min, t2 / loop, t2max);
+    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32" (min %.5f avg %.5f max %.5f s)\n", p, q, r1, t1min, t1 / loop, t1max);
+    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32" (min %.5f avg %.5f max %.5f s)\n", q, p, r2, t2min, t2 / loop, t2max);
 }
 
 int main(void)
