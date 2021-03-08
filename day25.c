@@ -64,14 +64,14 @@ static void result(uint_fast32_t p, uint_fast32_t q)
 {
     int i, loop = 100;
     volatile uint_fast32_t r1 = 0, r2 = 0;
-    double t, t1 = 0, t2 = 0, t1min = 10, t2min = 10;
+    double t, t1 = 0, t2 = 0, t1min = 10, t2min = 10, t1max = 0, t2max = 0;
 
     for (i = 0; i < loop; ++i) {
-        timer(); r1 = dhke(p, q); t = timer(); if (t < t1min) { t1min = t; } t1 += t;
-        timer(); r2 = dhke(q, p); t = timer(); if (t < t2min) { t2min = t; } t2 += t;
+        timer(); r1 = dhke(p, q); t = timer(); if (t < t1min) { t1min = t; } if (t > t1max) { t1max = t; } t1 += t;
+        timer(); r2 = dhke(q, p); t = timer(); if (t < t2min) { t2min = t; } if (t > t2max) { t2max = t; } t2 += t;
     }
-    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32"  (min %.5f avg %.5f s)\n", p, q, r1, t1min, t1 / loop);
-    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32"  (min %.5f avg %.5f s)\n", q, p, r2, t2min, t2 / loop);
+    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32"  (min %.5f avg %.5f max %.5f s)\n", p, q, r1, t1min, t1 / loop, t1max);
+    printf("  %8"PRIuFAST32" %8"PRIuFAST32" : %8"PRIuFAST32"  (min %.5f avg %.5f max %.5f s)\n", q, p, r2, t2min, t2 / loop, t2max);
 }
 
 int main(void)
