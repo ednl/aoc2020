@@ -74,13 +74,13 @@ int main(void)
     printf("\nexample\n");
     result(5764801, 17807724);
 
-    printf("\nalgorithm / ednl\n");
+    printf("\nalgorithm (ednl)\n");
     result(15113849, 4206373);
 
     printf("\nejolson\n");
     result(6270530, 14540258);
 
-    printf("\nlurk101 (1)\n");
+    printf("\nlurk101\n");
     result(16915772, 18447943);
 
     return 0;
