@@ -10,8 +10,8 @@
 // calculate the secret key with modular exponentiation.
 
 #include <stdio.h>     // printf
-#include <stdint.h>    // uint64_t, UINT64_C
-#include <inttypes.h>  // PRIu64
+#include <stdint.h>    // uint64_t, uint_fast32_t, UINT32_C
+#include <inttypes.h>  // PRIuFAST32
 #include <stdbool.h>   // bool, true, false
 #include <time.h>      // clock_gettime
 
@@ -41,23 +41,23 @@ static uint_fast32_t dhke(uint_fast32_t p, uint_fast32_t q)
     // Naive discrete logarithm
     uint_fast32_t e = 0, k = 1U;
     while (k != p && k != q) {    // symmetry in p, q
-        k = k * BASE % MOD;       // all 32-bit
+        k = k * BASE % MOD;       // all 32-bit numbers
         ++e;                      // exponent = multiplication count
     }
     uint64_t b = k == q ? p : q;  // new base is a 64-bit int
 
     // Modular exponentiation with fixed modulus
     // https://en.wikipedia.org/wiki/Modular_exponentiation#Right-to-left_binary_method
-    uint64_t r = 1U, m = MOD;     // only use 64-bit now (except e)
+    uint64_t r = 1U, m = MOD;     // only use 64bit (except e) to avoid conversion
     b %= m;
     while (e) {
         if (e & 1U) {
-            r = r * b % m;
+            r = r * b % m;        // r * b can be >32bit so use 64bit here
         }
-        b = b * b % m;
+        b = b * b % m;            // b * b can be >32bit
         e >>= 1;
     }
-    return (uint_fast32_t)r;
+    return (uint_fast32_t)r;      // r is mod m, and m is 25bit, so no truncation
 }
 
 static void result(uint_fast32_t p, uint_fast32_t q)
