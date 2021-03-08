@@ -10,10 +10,13 @@
 // calculate the secret key with modular exponentiation.
 
 #include <stdio.h>     // printf
-#include <stdint.h>    // uint64_t
+#include <stdint.h>    // uint64_t, UINT64_C
 #include <inttypes.h>  // PRIu64
 #include <stdbool.h>   // bool, true, false
 #include <time.h>      // clock_gettime
+
+#define BASE (UINT64_C(7)) 
+#define MOD  (UINT64_C(20201227))
 
 static double timer(void)
 {
@@ -32,28 +35,53 @@ static double timer(void)
     }
 }
 
-int main(void)
+static uint64_t dhke(uint64_t p, uint64_t q)
 {
-    timer();
-    uint64_t e = 0, r = 1, k = 1, b = 7, m = 20201227, p = 15113849, q = 4206373;
-
-    while (k != p && k != q) {  // symmetry in p,q
-        k = k * b % m;
-        ++e;  // count multiplications = exponent
+    uint64_t e = 0, k = 1U;
+    while (k != p && k != q) {  // symmetry in p, q
+        k = k * BASE % MOD;
+        ++e;                    // exponent = multiplication count
     }
-    b = k == q ? p : q;  // new base for second phase
+    uint64_t b = k == q ? p : q;
 
-    // Modular exponentiation r = modpow(b,e,m)
+    // Modular exponentiation with fixed modulus
     // https://en.wikipedia.org/wiki/Modular_exponentiation#Right-to-left_binary_method
-    b %= m;
+    uint64_t r = 1U;
+    b %= MOD;
     while (e) {
         if (e & 1U) {
-            r = r * b % m;
+            r = r * b % MOD;
         }
+        b = b * b % MOD;
         e >>= 1U;
-        b = b * b % m;
     }
+    return r;
+}
 
-    printf("%"PRIu64" %.5f\n", r, timer());
+static void result(uint64_t p, uint64_t q)
+{
+    timer();
+    uint64_t r = dhke(p, q);
+    printf("  %8"PRIu64" %8"PRIu64" : %8"PRIu64"  (%.5f s)\n", p, q, r, timer());
+
+    timer();
+    r = dhke(q, p);
+    printf("  %8"PRIu64" %8"PRIu64" : %8"PRIu64"  (%.5f s)\n", q, p, r, timer());
+}
+
+int main(void)
+{
+    printf("\nexample\n");
+    result(5764801, 17807724);
+
+    printf("\nalgorithm / ednl\n");
+    result(15113849, 4206373);
+
+    printf("\nejolson\n");
+    result(6270530, 14540258);
+
+    printf("\nlurk101 (1)\n");
+    result(16915772, 18447943);
+
     return 0;
 }
