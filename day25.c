@@ -41,14 +41,14 @@ static uint_fast32_t dhke(uint_fast32_t p, uint_fast32_t q)
     // Naive discrete logarithm
     uint_fast32_t e = 0, k = 1U;
     while (k != p && k != q) {    // symmetry in p, q
-        k = k * BASE % MOD;       // all 32-bit numbers
+        k = k * BASE % MOD;       // all 32-bit numbers (BASE: 3bit, MOD: 25bit => k * BASE 28bit)
         ++e;                      // exponent = multiplication count
     }
-    uint64_t b = k == q ? p : q;  // new base is a 64-bit int
+    uint64_t b = k == q ? p : q;  // new base for next part is a 64-bit int
 
     // Modular exponentiation with fixed modulus
     // https://en.wikipedia.org/wiki/Modular_exponentiation#Right-to-left_binary_method
-    uint64_t r = 1U, m = MOD;     // only use 64bit (except e) to avoid conversion
+    uint64_t r = 1U, m = MOD;     // only use 64bit (except e) to avoid conversions
     b %= m;
     while (e) {
         if (e & 1U) {
