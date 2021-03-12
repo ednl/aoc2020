@@ -1,4 +1,5 @@
 #include <stdio.h>     // printf
+#include <stdlib.h>    // abs
 #include <stdint.h>    // uint64_t, uint_fast32_t, UINT32_C
 #include <inttypes.h>  // PRIuFAST32
 #include <stdbool.h>   // bool, true, false
@@ -66,9 +67,27 @@ static void ext_gcd(int_fast32_t a, int_fast32_t b)
         tmp = s0 - q * s; s0 = s; s = tmp;
         tmp = t0 - q * t; t0 = t; t = tmp;
     }
+
+    // Correct signs
+    if (r0 < 0) {
+        r0 = -r0;  // GCD > 0
+    }
+    if ((a < 0) ^ (t < 0)) {
+        t = -t;    // t = reduced a, has same sign as a
+    }
+    if ((b < 0) ^ (s < 0)) {
+        s = -s;    // s = reduced b, has same sign as b
+    }
+
+    printf("=> p,q  : %9i %9i\n", a, b);  // in the function call, a = B-b, b = n
     printf("Bezout  : %9i %9i\n", s0, t0);
     printf("GCD     : %9i\n", r0);
-    printf("p,q/gcd : %9i %9i\n\n", t, s);
+    printf("p,q/gcd : %9i %9i\n\n", t, s);  // t = reduced a = (B-b)/gcd
+
+    // To find inverse of a, get Bézout coefficients for reduced a and reduced b
+    if (r0 != 1) {
+        ext_gcd(t, s);
+    }
 }
 
 // https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm_for_logarithms
@@ -100,9 +119,13 @@ static void rholog(int_fast32_t alpha, int_fast32_t beta, int_fast32_t N)
     printf("i,n,N   : %9i %9i %9i\n", i, n, N);
     printf("x,a,b   : %9"PRId64" %9i %9i\n", x, a, b);
     printf("X,A,B   : %9"PRId64" %9i %9i\n", X, A, B);
-
-    printf("p,q     : %9i %9i\n", B - b, a - A);
-    ext_gcd(B - b, a - A);
+    // Now: (B-b) . gamma = (a-A) (mod n)  where: alpha ^ gamma = beta (mod N)
+    // We must invert B-b (mod n) to get gamma. First, get the GCD of B-b and n:
+    ext_gcd(B - b, n);
+    // And use this result: gamma = (a-A)/gcd . ((B-b)/gcd)^-1 (mod n/gcd)
+    // If the gcd was not 1, then calculate it again but this time to get Bézout's coefficients,
+    // where: s0 = (B-b)/gcd and t = n/gcd, from the previous ext_gcd() call.
+    // ext_gcd(s0, t);
 }
 
 // static uint_fast32_t babygiant(uint_fast32_t h)
@@ -142,14 +165,17 @@ static void rholog(int_fast32_t alpha, int_fast32_t beta, int_fast32_t N)
 
 int main(void)
 {
-    modlog(15113849, BASE, MOD);
-    rholog(BASE, 15113849, MOD);
+    // modlog(15113849, BASE, MOD);
+    // rholog(BASE, 15113849, MOD);
 
-    modlog(4206373, BASE, MOD);
-    rholog(BASE, 4206373, MOD);
+    // modlog(4206373, BASE, MOD);
+    // rholog(BASE, 4206373, MOD);
 
-    modlog(5, 2, 1019);
-    rholog(2, 5, 1019);
+    // modlog(5, 2, 1019);
+    // rholog(2, 5, 1019);
+
+    modlog(262682, 5, 1000003);
+    rholog(5, 262682, 1000003);
 
     // printf("\nalgorithm (ednl)\n");
     // result(15113849, 4206373);
